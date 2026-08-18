@@ -1,11 +1,11 @@
 use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Response},
+    extract::path::ErrorKind::Message, http::StatusCode, response::{IntoResponse, Response},
 };
 
 pub enum AppError {
     BadRequest(String),
     DatabaseError,
+    NotFound(String),
 }
 
 impl IntoResponse for AppError {
@@ -16,6 +16,9 @@ impl IntoResponse for AppError {
             }
             AppError::DatabaseError => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+            }
+            AppError::NotFound(message) => {
+                (StatusCode::NOT_FOUND, message).into_response()
             }
         }
     }
