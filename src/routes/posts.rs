@@ -7,7 +7,10 @@ use axum::{
 };
 
 use crate::{
-    domain::post::{CreatePost, Post}, repository::{ posts as posts_repository}, state::AppState,
+    domain::post::{CreatePost, Post},
+    repository::{ posts as posts_repository},
+    state::AppState,
+    services::posts as posts_service,
 };
 
 use crate::error::AppError;
@@ -21,10 +24,12 @@ pub async fn get_posts(
 }
 
 pub async fn create_post(State(state): State<Arc<AppState>>, Json(input): Json<CreatePost>) -> Result<Json<Post>, AppError> {
-
-    input.validate().map_err(AppError::BadRequest)?;
     
-    let post = posts_repository::create_post(&state.db, input).await?;
+    let post = posts_service::create_post(
+        &state.db,
+        input,
+    )
+    .await?;
 
     Ok(Json(post))
 }

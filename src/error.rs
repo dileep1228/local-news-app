@@ -1,5 +1,5 @@
 use axum::{
-    extract::path::ErrorKind::Message, http::StatusCode, response::{IntoResponse, Response},
+    http::StatusCode, response::{IntoResponse, Response},
 };
 
 pub enum AppError {

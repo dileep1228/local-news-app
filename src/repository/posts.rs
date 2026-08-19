@@ -20,13 +20,15 @@ pub async fn create_post(
 ) -> Result<Post, AppError> {
     let post = sqlx::query_as::<_, Post>(
         r#"
-        INSERT INTO posts (user_id, message)
-        VALUES ($1, $2)
-        RETURNING id, user_id, message
+        INSERT INTO posts (user_id, message, latitude, longitude)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, user_id, message, latitude, longitude
         "#,
     )
     .bind(input.user_id)
     .bind(input.message)
+    .bind(input.location.latitude)
+    .bind(input.location.longitude)
     .fetch_one(pool)
     .await
     .map_err(|_| AppError::DatabaseError)?;
@@ -39,7 +41,7 @@ pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
 
     let posts = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message
+        SELECT id, user_id, message, latitude, longitude
         FROM posts
         ORDER BY id DESC
         "#
@@ -61,7 +63,7 @@ pub async fn get_post_by_id(pool: &PgPool, id: i64) -> Result<Option<Post>, AppE
 
     let post = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message
+        SELECT id, user_id, message, latitude, longitude
         FROM posts
         WHERE id = $1
         "#
@@ -119,4 +121,25 @@ pub async fn update_post(
     .map_err(|_| AppError::DatabaseError)?;
 
     Ok(result.rows_affected() > 0)
+}
+
+pub async fn post_exists(
+    pool: &PgPool,
+    message: &str,
+) -> Result<bool, AppError> {
+    let exists: bool = sqlx::query_scalar(
+        r#"
+        SELECT EXISTS (
+            SELECT 1
+            FROM posts
+            WHERE message = $1
+        )
+        "#,
+    )
+    .bind(message)
+    .fetch_one(pool)
+    .await
+    .map_err(|_| AppError::DatabaseError)?;
+
+    Ok(exists)
 }
