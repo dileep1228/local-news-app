@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{
-    routes::posts::{create_post, get_posts, get_post_by_id, delete_post, update_post},
+    routes::posts::{create_post, get_posts, get_post_by_id, delete_post, update_post, get_nearby_posts},
     state::AppState,
 };
 
@@ -24,5 +24,6 @@ pub fn build_app(state: Arc<AppState>) -> Router {
             .put(update_post)
             .delete(delete_post),
         )
+        .route("/posts/nearby", get(get_nearby_posts))
         .with_state(state)
 }

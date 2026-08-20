@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-    domain::post::{CreatePost, Post}, error::AppError,
+    domain::post::{CreatePost, Post, NearbyPostsRequest}, error::AppError,
 };
 
 /// Persists a new post in PostgreSQL and returns the inserted row.
@@ -22,7 +22,7 @@ pub async fn create_post(
         r#"
         INSERT INTO posts (user_id, message, latitude, longitude)
         VALUES ($1, $2, $3, $4)
-        RETURNING id, user_id, message, latitude, longitude
+        RETURNING id, user_id, message, latitude, longitude, created_at, expires_at
         "#,
     )
     .bind(input.user_id)
@@ -41,14 +41,18 @@ pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
 
     let posts = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message, latitude, longitude
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
         FROM posts
+        WHERE expires_at > NOW()
         ORDER BY id DESC
         "#
     )
     .fetch_all(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        eprintln!("Database error: {:?}", e);
+        AppError::DatabaseError
+    })?;
 
     Ok(posts)
 }
@@ -59,11 +63,14 @@ pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
 /// - `Some(Post)` means the row exists.
 /// - `None` means the query succeeded but no matching row was found.
 /// - Database failures are returned as `AppError`.
-pub async fn get_post_by_id(pool: &PgPool, id: i64) -> Result<Option<Post>, AppError> {
+pub async fn get_post_by_id(
+    pool: &PgPool,
+    id: i64
+) -> Result<Option<Post>, AppError> {
 
     let post = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message, latitude, longitude
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
         FROM posts
         WHERE id = $1
         "#
@@ -142,4 +149,59 @@ pub async fn post_exists(
     .map_err(|_| AppError::DatabaseError)?;
 
     Ok(exists)
+}
+
+
+// [TODO] We currently filter expired posts with WHERE expires_at > NOW(). 
+// In the future, if data volume grows, consider adding a background task to archive 
+// or delete expired posts to improve long-term performance.
+
+pub async fn get_nearby_posts(
+    pool: &PgPool,
+    request: NearbyPostsRequest,
+) -> Result<Vec<Post>, AppError> {
+    let posts = sqlx::query_as::<_, Post>(
+        r#"
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
+        FROM (
+            SELECT
+                id,
+                user_id,
+                message,
+                latitude,
+                longitude,created_at, expires_at,
+
+                2 * 6371000 * ASIN(
+                    SQRT(
+                        POWER(
+                            SIN(RADIANS(latitude - $1) / 2),
+                            2
+                        )
+                        +
+                        COS(RADIANS($1))
+                        * COS(RADIANS(latitude))
+                        * POWER(
+                            SIN(RADIANS(longitude - $2) / 2),
+                            2
+                        )
+                    )
+                ) AS distance_meters
+
+            FROM posts
+            WHERE expires_at > NOW()
+        ) nearby_posts
+
+        WHERE distance_meters <= $3
+
+        ORDER BY distance_meters ASC
+        "#,
+    )
+    .bind(request.latitude)
+    .bind(request.longitude)
+    .bind(request.radius)
+    .fetch_all(pool)
+    .await
+    .map_err(|_| AppError::DatabaseError)?;
+
+    Ok(posts)
 }

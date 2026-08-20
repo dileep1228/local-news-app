@@ -2,12 +2,12 @@ use std::sync::Arc;
 use axum::extract::Path;
 
 use axum::{
-    Json, extract::{State},
+    Json, extract::{State, Query},
     http::StatusCode,
 };
 
 use crate::{
-    domain::post::{CreatePost, Post},
+    domain::post::{CreatePost, Post, NearbyPostsRequest},
     repository::{ posts as posts_repository},
     state::AppState,
     services::posts as posts_service,
@@ -23,7 +23,10 @@ pub async fn get_posts(
     Ok(Json(posts))
 }
 
-pub async fn create_post(State(state): State<Arc<AppState>>, Json(input): Json<CreatePost>) -> Result<Json<Post>, AppError> {
+pub async fn create_post(
+    State(state): State<Arc<AppState>>,
+    Json(input): Json<CreatePost>
+) -> Result<Json<Post>, AppError> {
     
     let post = posts_service::create_post(
         &state.db,
@@ -34,7 +37,10 @@ pub async fn create_post(State(state): State<Arc<AppState>>, Json(input): Json<C
     Ok(Json(post))
 }
 
-pub async fn get_post_by_id(State(state): State<Arc<AppState>>, Path(id): Path<i64>) -> Result<Json<Post>, AppError> {
+pub async fn get_post_by_id(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i64>
+) -> Result<Json<Post>, AppError> {
     let post = posts_repository::get_post_by_id(&state.db, id).await?;
 
     match post {
@@ -88,4 +94,17 @@ pub async fn update_post(
         ))
     }
        
+}
+
+pub async fn get_nearby_posts(
+    State(state): State<Arc<AppState>>,
+    Query(request): Query<NearbyPostsRequest>,
+) -> Result<Json<Vec<Post>>, AppError> {
+    let posts = posts_service::get_near_by_posts(
+        &state.db,
+        request,
+    )
+    .await?;
+
+    Ok(Json(posts))
 }

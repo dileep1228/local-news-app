@@ -1,9 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-    domain::post::{CreatePost, Post},
-    error::AppError,
-    repository::posts as posts_repository,
+    domain::post::{CreatePost, NearbyPostsRequest, Post}, error::AppError, repository::posts as posts_repository,
 };
 
 pub async fn create_post(
@@ -25,6 +23,28 @@ pub async fn create_post(
     posts_repository::create_post(
         pool,
         input,
+    )
+    .await
+}
+
+pub async fn get_near_by_posts(
+    pool: &PgPool,
+    request: NearbyPostsRequest
+) -> Result<Vec<Post>, AppError> {
+
+    request
+        .validate()
+        .map_err(AppError::BadRequest)?;
+
+     if request.radius > 50_000.0 {
+        return Err(AppError::BadRequest(
+            "Search radius cannot exceed 50 km".to_string(),
+        ));
+    }
+
+    posts_repository::get_nearby_posts(
+        pool,
+        request,
     )
     .await
 }
