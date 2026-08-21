@@ -73,3 +73,16 @@ impl NearbyPostsRequest {
         Ok(())
     }
 }
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ReactionType {
+    Signal,
+    Noise,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ReactToPost {
+    pub user_id: i64,
+    pub reaction: ReactionType,
+}

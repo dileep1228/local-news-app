@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use axum::extract::Path;
+use crate::{domain::post::ReactToPost, error::AppError};
 
 use axum::{
     Json, extract::{State, Query},
@@ -12,8 +13,6 @@ use crate::{
     state::AppState,
     services::posts as posts_service,
 };
-
-use crate::error::AppError;
 
 pub async fn get_posts(
     State(state): State<Arc<AppState>>,
@@ -107,4 +106,13 @@ pub async fn get_nearby_posts(
     .await?;
 
     Ok(Json(posts))
+}
+
+
+pub async fn post_reaction(
+    State(state): State<Arc<AppState>>,
+    Path(post_id): Path<i64>,
+    Json(input): Json<ReactToPost>
+) -> Result<StatusCode, AppError> {
+// TODO
 }
