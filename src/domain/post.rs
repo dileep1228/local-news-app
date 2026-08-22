@@ -1,5 +1,5 @@
-use serde::{Deserialize};
 use chrono::{DateTime, Utc};
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Location {
@@ -16,6 +16,8 @@ pub struct Post {
     pub longitude: f64,
     pub created_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
+    pub signal_count: i64,
+    pub noise_count: i64,
 }
 
 #[derive(Debug, Deserialize)]

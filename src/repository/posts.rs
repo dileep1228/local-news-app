@@ -2,7 +2,8 @@ use sqlx::PgPool;
 use tracing::error;
 
 use crate::{
-    domain::post::{CreatePost, Post, NearbyPostsRequest, ReactionType}, error::AppError,
+    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactionType},
+    error::AppError,
 };
 
 /// Persists a new post in PostgreSQL and returns the inserted row.
@@ -15,15 +16,12 @@ use crate::{
 ///
 /// `PgPool` is borrowed because this function does not own the pool.
 /// SQLx will borrow a connection from the pool while executing the query.
-pub async fn create_post(
-    pool: &PgPool,
-    input: CreatePost,
-) -> Result<Post, AppError> {
+pub async fn create_post(pool: &PgPool, input: CreatePost) -> Result<Post, AppError> {
     let post = sqlx::query_as::<_, Post>(
         r#"
         INSERT INTO posts (user_id, message, latitude, longitude)
         VALUES ($1, $2, $3, $4)
-        RETURNING id, user_id, message, latitude, longitude, created_at, expires_at
+        RETURNING id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
         "#,
     )
     .bind(input.user_id)
@@ -40,12 +38,10 @@ pub async fn create_post(
     Ok(post)
 }
 
-
 pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
-
     let posts = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
         FROM posts
         WHERE expires_at > NOW()
         ORDER BY id DESC
@@ -67,14 +63,10 @@ pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
 /// - `Some(Post)` means the row exists.
 /// - `None` means the query succeeded but no matching row was found.
 /// - Database failures are returned as `AppError`.
-pub async fn get_post_by_id(
-    pool: &PgPool,
-    id: i64
-) -> Result<Option<Post>, AppError> {
-
+pub async fn get_post_by_id(pool: &PgPool, id: i64) -> Result<Option<Post>, AppError> {
     let post = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
         FROM posts
         WHERE id = $1
         "#
@@ -87,8 +79,7 @@ pub async fn get_post_by_id(
         AppError::DatabaseError
     })?;
 
-     Ok(post)
-
+    Ok(post)
 }
 
 /// Deletes a post by ID.
@@ -97,10 +88,7 @@ pub async fn get_post_by_id(
 /// - `Ok(true)` if a post was deleted.
 /// - `Ok(false)` if no post with that ID existed.
 /// - `Err(AppError)` if the database operation failed.
-pub async fn delete_post(
-    pool: &PgPool,
-    id: i64,
-) -> Result<bool, AppError> {
+pub async fn delete_post(pool: &PgPool, id: i64) -> Result<bool, AppError> {
     let result = sqlx::query(
         r#"
         DELETE FROM posts
@@ -118,12 +106,7 @@ pub async fn delete_post(
     Ok(result.rows_affected() > 0)
 }
 
-
-pub async fn update_post(
-    pool: &PgPool,
-    id: i64,
-    input: CreatePost,
-) -> Result<bool, AppError> {
+pub async fn update_post(pool: &PgPool, id: i64, input: CreatePost) -> Result<bool, AppError> {
     let result = sqlx::query(
         r#"
         UPDATE posts
@@ -143,10 +126,7 @@ pub async fn update_post(
     Ok(result.rows_affected() > 0)
 }
 
-pub async fn post_exists(
-    pool: &PgPool,
-    message: &str,
-) -> Result<bool, AppError> {
+pub async fn post_exists(pool: &PgPool, message: &str) -> Result<bool, AppError> {
     let exists: bool = sqlx::query_scalar(
         r#"
         SELECT EXISTS (
@@ -166,7 +146,6 @@ pub async fn post_exists(
 
     Ok(exists)
 }
-
 
 /// Inserts a reaction and bumps the matching counter on the post, atomically.
 ///
@@ -228,7 +207,7 @@ pub async fn react_to_post(
 }
 
 // [TODO] We currently filter expired posts with WHERE expires_at > NOW().
-// In the future, if data volume grows, consider adding a background task to archive 
+// In the future, if data volume grows, consider adding a background task to archive
 // or delete expired posts to improve long-term performance.
 
 pub async fn get_nearby_posts(
@@ -237,14 +216,14 @@ pub async fn get_nearby_posts(
 ) -> Result<Vec<Post>, AppError> {
     let posts = sqlx::query_as::<_, Post>(
         r#"
-        SELECT id, user_id, message, latitude, longitude, created_at, expires_at
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
         FROM (
             SELECT
                 id,
                 user_id,
                 message,
                 latitude,
-                longitude,created_at, expires_at,
+                longitude, created_at, expires_at, signal_count, noise_count,
 
                 2 * 6371000 * ASIN(
                     SQRT(
