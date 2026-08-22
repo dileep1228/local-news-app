@@ -4,6 +4,7 @@ use axum::{
 
 pub enum AppError {
     BadRequest(String),
+    Conflict(String),
     DatabaseError,
     NotFound(String),
 }
@@ -13,6 +14,9 @@ impl IntoResponse for AppError {
         match self {
             AppError::BadRequest(message) => {
                 (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            AppError::Conflict(message) => {
+                (StatusCode::CONFLICT, message).into_response()
             }
             AppError::DatabaseError => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()

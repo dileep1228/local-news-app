@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-    domain::post::{CreatePost, NearbyPostsRequest, Post}, error::AppError, repository::posts as posts_repository,
+    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactToPost}, error::AppError, repository::posts as posts_repository,
 };
 
 pub async fn create_post(
@@ -45,6 +45,20 @@ pub async fn get_near_by_posts(
     posts_repository::get_nearby_posts(
         pool,
         request,
+    )
+    .await
+}
+
+pub async fn react_to_post(
+    pool: &PgPool,
+    post_id: i64,
+    input: ReactToPost,
+) -> Result<(), AppError> {
+    posts_repository::react_to_post(
+        pool,
+        post_id,
+        input.user_id,
+        &input.reaction,
     )
     .await
 }

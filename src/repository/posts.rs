@@ -1,7 +1,8 @@
 use sqlx::PgPool;
+use tracing::error;
 
 use crate::{
-    domain::post::{CreatePost, Post, NearbyPostsRequest}, error::AppError,
+    domain::post::{CreatePost, Post, NearbyPostsRequest, ReactionType}, error::AppError,
 };
 
 /// Persists a new post in PostgreSQL and returns the inserted row.
@@ -31,7 +32,10 @@ pub async fn create_post(
     .bind(input.location.longitude)
     .fetch_one(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, "failed to insert post");
+        AppError::DatabaseError
+    })?;
 
     Ok(post)
 }
@@ -50,7 +54,7 @@ pub async fn get_posts(pool: &PgPool) -> Result<Vec<Post>, AppError> {
     .fetch_all(pool)
     .await
     .map_err(|e| {
-        eprintln!("Database error: {:?}", e);
+        error!(error = ?e, "failed to fetch posts");
         AppError::DatabaseError
     })?;
 
@@ -78,7 +82,10 @@ pub async fn get_post_by_id(
     .bind(id)
     .fetch_optional(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, post_id = id, "failed to fetch post by id");
+        AppError::DatabaseError
+    })?;
 
      Ok(post)
 
@@ -103,7 +110,10 @@ pub async fn delete_post(
     .bind(id)
     .execute(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, post_id = id, "failed to delete post");
+        AppError::DatabaseError
+    })?;
 
     Ok(result.rows_affected() > 0)
 }
@@ -125,7 +135,10 @@ pub async fn update_post(
     .bind(id)
     .execute(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, post_id = id, "failed to update post");
+        AppError::DatabaseError
+    })?;
 
     Ok(result.rows_affected() > 0)
 }
@@ -146,13 +159,75 @@ pub async fn post_exists(
     .bind(message)
     .fetch_one(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, "failed to check if post exists");
+        AppError::DatabaseError
+    })?;
 
     Ok(exists)
 }
 
 
-// [TODO] We currently filter expired posts with WHERE expires_at > NOW(). 
+/// Inserts a reaction and bumps the matching counter on the post, atomically.
+///
+/// Uses a writable CTE so the INSERT and UPDATE run as a single statement:
+/// if the INSERT violates the (post_id, user_id) unique constraint, the
+/// whole statement is rolled back and the counters are never touched.
+pub async fn react_to_post(
+    pool: &PgPool,
+    post_id: i64,
+    user_id: i64,
+    reaction: &ReactionType,
+) -> Result<(), AppError> {
+    let reaction_str = match reaction {
+        ReactionType::Signal => "signal",
+        ReactionType::Noise => "noise",
+    };
+
+    let result = sqlx::query(
+        r#"
+        WITH new_reaction AS (
+            INSERT INTO post_reactions (post_id, user_id, reaction)
+            VALUES ($1, $2, $3)
+            RETURNING reaction
+        )
+        UPDATE posts
+        SET
+            signal_count = signal_count
+                + CASE WHEN (SELECT reaction FROM new_reaction) = 'signal' THEN 1 ELSE 0 END,
+            noise_count = noise_count
+                + CASE WHEN (SELECT reaction FROM new_reaction) = 'noise' THEN 1 ELSE 0 END
+        WHERE id = $1
+        "#,
+    )
+    .bind(post_id)
+    .bind(user_id)
+    .bind(reaction_str)
+    .execute(pool)
+    .await;
+
+    match result {
+        Ok(_) => Ok(()),
+        Err(sqlx::Error::Database(db_err)) => match db_err.code().as_deref() {
+            // unique_violation: (post_id, user_id) already has a reaction
+            Some("23505") => Err(AppError::Conflict(
+                "You already reacted to this post".to_string(),
+            )),
+            // foreign_key_violation: post_id doesn't exist
+            Some("23503") => Err(AppError::NotFound("Post not found".to_string())),
+            _ => {
+                error!(error = ?db_err, post_id, "failed to record reaction");
+                Err(AppError::DatabaseError)
+            }
+        },
+        Err(e) => {
+            error!(error = ?e, post_id, "failed to record reaction");
+            Err(AppError::DatabaseError)
+        }
+    }
+}
+
+// [TODO] We currently filter expired posts with WHERE expires_at > NOW().
 // In the future, if data volume grows, consider adding a background task to archive 
 // or delete expired posts to improve long-term performance.
 
@@ -201,7 +276,10 @@ pub async fn get_nearby_posts(
     .bind(request.radius)
     .fetch_all(pool)
     .await
-    .map_err(|_| AppError::DatabaseError)?;
+    .map_err(|e| {
+        error!(error = ?e, "failed to fetch nearby posts");
+        AppError::DatabaseError
+    })?;
 
     Ok(posts)
 }
