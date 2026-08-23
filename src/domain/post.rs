@@ -53,6 +53,7 @@ impl CreatePost {
 
 #[derive(Debug, Deserialize)]
 pub struct NearbyPostsRequest {
+    pub user_id: i64,
     pub latitude: f64,
     pub longitude: f64,
     pub radius: f64,

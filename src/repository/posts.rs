@@ -260,6 +260,12 @@ pub async fn get_nearby_posts(
 
             FROM posts
             WHERE expires_at > NOW()
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM post_reactions pr
+                  WHERE pr.post_id = posts.id
+                    AND pr.user_id = $4
+              )
         ) nearby_posts
 
         WHERE distance_meters <= $3
@@ -270,6 +276,7 @@ pub async fn get_nearby_posts(
     .bind(request.latitude)
     .bind(request.longitude)
     .bind(request.radius)
+    .bind(request.user_id)
     .fetch_all(pool)
     .await
     .map_err(|e| {

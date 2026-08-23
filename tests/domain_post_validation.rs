@@ -63,6 +63,7 @@ fn validate_accepts_valid_post() {
 
 fn valid_nearby_request() -> NearbyPostsRequest {
     NearbyPostsRequest {
+        user_id: 1,
         latitude: 47.6062,
         longitude: -122.3321,
         radius: 1000.0,
