@@ -163,6 +163,23 @@ pub async fn react_to_post(
         ReactionType::Noise => "noise",
     };
 
+    let is_active: Option<bool> = sqlx::query_scalar(
+        "SELECT expires_at > NOW() FROM posts WHERE id = $1",
+    )
+    .bind(post_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        error!(error = ?e, post_id, "failed to check post expiry");
+        AppError::DatabaseError
+    })?;
+
+    match is_active {
+        None => return Err(AppError::NotFound("Post not found".to_string())),
+        Some(false) => return Err(AppError::Gone("This post has expired".to_string())),
+        Some(true) => {}
+    }
+
     let result = sqlx::query(
         r#"
         WITH new_reaction AS (
