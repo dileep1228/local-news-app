@@ -107,6 +107,27 @@ impl TrendingPostsRequest {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ReactedPostsRequest {
+    pub user_id: i64,
+    pub limit: Option<i64>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
+pub struct ReactedPost {
+    pub id: i64,
+    pub user_id: i64,
+    pub message: String,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub created_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+    pub signal_count: i64,
+    pub noise_count: i64,
+    pub reaction: String,
+    pub reacted_at: DateTime<Utc>,
+}
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ReactionType {

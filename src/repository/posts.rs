@@ -2,7 +2,10 @@ use sqlx::PgPool;
 use tracing::error;
 
 use crate::{
-    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactionType, TrendingPostsRequest},
+    domain::post::{
+        CreatePost, NearbyPostsRequest, Post, ReactedPost, ReactedPostsRequest, ReactionType,
+        TrendingPostsRequest,
+    },
     error::AppError,
 };
 
@@ -356,6 +359,40 @@ pub async fn get_trending_posts(
     .await
     .map_err(|e| {
         error!(error = ?e, "failed to fetch trending posts");
+        AppError::DatabaseError
+    })?;
+
+    Ok(posts)
+}
+
+/// Posts a user has reacted to, most recent reaction first. Deliberately
+/// does not filter by expires_at - this is a history view, so expired
+/// posts the user reacted to should still show up.
+pub async fn get_reacted_posts(
+    pool: &PgPool,
+    request: ReactedPostsRequest,
+) -> Result<Vec<ReactedPost>, AppError> {
+    let limit = request.limit.unwrap_or(50).clamp(1, 100);
+
+    let posts = sqlx::query_as::<_, ReactedPost>(
+        r#"
+        SELECT
+            p.id, p.user_id, p.message, p.latitude, p.longitude,
+            p.created_at, p.expires_at, p.signal_count, p.noise_count,
+            pr.reaction, pr.created_at AS reacted_at
+        FROM post_reactions pr
+        JOIN posts p ON p.id = pr.post_id
+        WHERE pr.user_id = $1
+        ORDER BY pr.created_at DESC
+        LIMIT $2
+        "#,
+    )
+    .bind(request.user_id)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        error!(error = ?e, "failed to fetch reacted posts");
         AppError::DatabaseError
     })?;
 
