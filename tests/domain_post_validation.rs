@@ -67,6 +67,8 @@ fn valid_nearby_request() -> NearbyPostsRequest {
         latitude: 47.6062,
         longitude: -122.3321,
         radius: 1000.0,
+        sort: None,
+        limit: None,
     }
 }
 

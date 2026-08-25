@@ -52,11 +52,20 @@ impl CreatePost {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum NearbySort {
+    Distance,
+    Score,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct NearbyPostsRequest {
     pub user_id: i64,
     pub latitude: f64,
     pub longitude: f64,
     pub radius: f64,
+    pub sort: Option<NearbySort>,
+    pub limit: Option<i64>,
 }
 
 impl NearbyPostsRequest {

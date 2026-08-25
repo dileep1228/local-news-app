@@ -3,8 +3,8 @@ use tracing::error;
 
 use crate::{
     domain::post::{
-        CreatePost, NearbyPostsRequest, Post, ReactedPost, ReactedPostsRequest, ReactionType,
-        TrendingPostsRequest,
+        CreatePost, NearbyPostsRequest, NearbySort, Post, ReactedPost, ReactedPostsRequest,
+        ReactionType, TrendingPostsRequest,
     },
     error::AppError,
 };
@@ -234,7 +234,18 @@ pub async fn get_nearby_posts(
     pool: &PgPool,
     request: NearbyPostsRequest,
 ) -> Result<Vec<Post>, AppError> {
-    let posts = sqlx::query_as::<_, Post>(
+    // ORDER BY can't be parameterized with a bind() placeholder - those only
+    // work for values, not SQL expressions/identifiers. Safe to interpolate
+    // here because order_by only ever comes from this fixed match, never
+    // from raw user input; the actual values (lat/long/radius/user_id/limit)
+    // still go through bind() as normal.
+    let order_by = match request.sort.unwrap_or(NearbySort::Distance) {
+        NearbySort::Distance => "distance_meters ASC",
+        NearbySort::Score => "(signal_count + 5.0) / (signal_count + noise_count + 10.0) DESC",
+    };
+    let limit = request.limit.unwrap_or(50).clamp(1, 100);
+
+    let query = format!(
         r#"
         SELECT id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
         FROM (
@@ -273,19 +284,23 @@ pub async fn get_nearby_posts(
 
         WHERE distance_meters <= $3
 
-        ORDER BY distance_meters ASC
-        "#,
-    )
-    .bind(request.latitude)
-    .bind(request.longitude)
-    .bind(request.radius)
-    .bind(request.user_id)
-    .fetch_all(pool)
-    .await
-    .map_err(|e| {
-        error!(error = ?e, "failed to fetch nearby posts");
-        AppError::DatabaseError
-    })?;
+        ORDER BY {order_by}
+        LIMIT $5
+        "#
+    );
+
+    let posts = sqlx::query_as::<_, Post>(&query)
+        .bind(request.latitude)
+        .bind(request.longitude)
+        .bind(request.radius)
+        .bind(request.user_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            error!(error = ?e, "failed to fetch nearby posts");
+            AppError::DatabaseError
+        })?;
 
     Ok(posts)
 }
