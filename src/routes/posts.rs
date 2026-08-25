@@ -9,7 +9,7 @@ use axum::{
 };
 
 use crate::{
-    domain::post::{CreatePost, NearbyPostsRequest, Post},
+    domain::post::{CreatePost, NearbyPostsRequest, Post, TrendingPostsRequest},
     repository::posts as posts_repository,
     services::posts as posts_service,
     state::AppState,
@@ -74,6 +74,15 @@ pub async fn get_nearby_posts(
     Query(request): Query<NearbyPostsRequest>,
 ) -> Result<Json<Vec<Post>>, AppError> {
     let posts = posts_service::get_near_by_posts(&state.db, request).await?;
+
+    Ok(Json(posts))
+}
+
+pub async fn get_trending_posts(
+    State(state): State<Arc<AppState>>,
+    Query(request): Query<TrendingPostsRequest>,
+) -> Result<Json<Vec<Post>>, AppError> {
+    let posts = posts_service::get_trending_posts(&state.db, request).await?;
 
     Ok(Json(posts))
 }

@@ -77,6 +77,36 @@ impl NearbyPostsRequest {
     }
 }
 
+// [TODO] Location filtering is always required for now (city/state/country
+// tiers are approximated by choosing a bigger radius). A "world" tier with
+// no location filter at all is a deliberately deferred idea - see the note
+// above get_trending_posts in repository/posts.rs.
+#[derive(Debug, Deserialize)]
+pub struct TrendingPostsRequest {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub radius: f64,
+    pub limit: Option<i64>,
+}
+
+impl TrendingPostsRequest {
+    pub fn validate(&self) -> Result<(), String> {
+        if !(-90.0..=90.0).contains(&self.latitude) {
+            return Err("Invalid latitude".into());
+        }
+
+        if !(-180.0..=180.0).contains(&self.longitude) {
+            return Err("Invalid longitude".into());
+        }
+
+        if self.radius <= 0.0 {
+            return Err("Radius must be positive".into());
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ReactionType {

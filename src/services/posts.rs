@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactToPost}, error::AppError, repository::posts as posts_repository,
+    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactToPost, TrendingPostsRequest}, error::AppError, repository::posts as posts_repository,
 };
 
 pub async fn create_post(
@@ -43,6 +43,21 @@ pub async fn get_near_by_posts(
     }
 
     posts_repository::get_nearby_posts(
+        pool,
+        request,
+    )
+    .await
+}
+
+pub async fn get_trending_posts(
+    pool: &PgPool,
+    request: TrendingPostsRequest,
+) -> Result<Vec<Post>, AppError> {
+    request
+        .validate()
+        .map_err(AppError::BadRequest)?;
+
+    posts_repository::get_trending_posts(
         pool,
         request,
     )

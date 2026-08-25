@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use tracing::error;
 
 use crate::{
-    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactionType},
+    domain::post::{CreatePost, NearbyPostsRequest, Post, ReactionType, TrendingPostsRequest},
     error::AppError,
 };
 
@@ -281,6 +281,81 @@ pub async fn get_nearby_posts(
     .await
     .map_err(|e| {
         error!(error = ?e, "failed to fetch nearby posts");
+        AppError::DatabaseError
+    })?;
+
+    Ok(posts)
+}
+
+// [TODO] Trending currently always requires a location + radius. A "world"
+// tier (no location filter at all, just the highest-scored posts globally)
+// was deliberately deferred - the radius approach approximates city/state/
+// country scope by just choosing a bigger number, without needing real
+// geocoding or PostGIS.
+//
+// [TODO] Like get_nearby_posts, this scans and scores every active post
+// before filtering by distance - there's no spatial index yet, so query
+// cost scales with total active post volume, not with radius. Fine at
+// current scale; revisit with a bounding-box pre-filter or PostGIS once
+// post volume grows.
+//
+// Ranking uses a Bayesian-style smoothed score instead of a raw ratio, so a
+// post with 1 signal / 0 noise doesn't outrank one with 100 signal / 5 noise:
+// score = (signal_count + 5) / (signal_count + noise_count + 10)
+// This is equivalent to assuming every post starts with 5 imaginary signal
+// and 5 imaginary noise reactions, so a post needs real engagement before
+// its own ratio can dominate the score.
+pub async fn get_trending_posts(
+    pool: &PgPool,
+    request: TrendingPostsRequest,
+) -> Result<Vec<Post>, AppError> {
+    let limit = request.limit.unwrap_or(50).clamp(1, 100);
+
+    let posts = sqlx::query_as::<_, Post>(
+        r#"
+        SELECT id, user_id, message, latitude, longitude, created_at, expires_at, signal_count, noise_count
+        FROM (
+            SELECT
+                id,
+                user_id,
+                message,
+                latitude,
+                longitude, created_at, expires_at, signal_count, noise_count,
+
+                2 * 6371000 * ASIN(
+                    SQRT(
+                        POWER(
+                            SIN(RADIANS(latitude - $1) / 2),
+                            2
+                        )
+                        +
+                        COS(RADIANS($1))
+                        * COS(RADIANS(latitude))
+                        * POWER(
+                            SIN(RADIANS(longitude - $2) / 2),
+                            2
+                        )
+                    )
+                ) AS distance_meters
+
+            FROM posts
+            WHERE expires_at > NOW()
+        ) trending_posts
+
+        WHERE distance_meters <= $3
+
+        ORDER BY (signal_count + 5.0) / (signal_count + noise_count + 10.0) DESC
+        LIMIT $4
+        "#,
+    )
+    .bind(request.latitude)
+    .bind(request.longitude)
+    .bind(request.radius)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        error!(error = ?e, "failed to fetch trending posts");
         AppError::DatabaseError
     })?;
 
