@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
-      <Map style={styles.map} mapStyle="https://demotiles.maplibre.org/style.json">
+      <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
         <Camera
           initialViewState={{
             centerCoordinate: [-122.3321, 47.6062],
