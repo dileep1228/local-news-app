@@ -1,20 +1,19 @@
 import { StyleSheet } from 'react-native';
 
-import MapView from 'react-native-maps';
+import { Camera, Map } from '@maplibre/maplibre-react-native';
 import { ThemedView } from '@/components/themed-view';
 
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: 47.6062,
-          longitude: -122.3321,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-      />
+      <Map style={styles.map} mapStyle="https://demotiles.maplibre.org/style.json">
+        <Camera
+          initialViewState={{
+            centerCoordinate: [-122.3321, 47.6062],
+            zoomLevel: 12,
+          }}
+        />
+      </Map>
     </ThemedView>
   );
 }
