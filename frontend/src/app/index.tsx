@@ -7,12 +7,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
-        <Camera
-          initialViewState={{
-            centerCoordinate: [-122.3321, 47.6062],
-            zoomLevel: 12,
-          }}
-        />
+        <Camera center={[-122.3321, 47.6062]} zoom={14} />
       </Map>
     </ThemedView>
   );
