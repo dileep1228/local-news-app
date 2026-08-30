@@ -27,22 +27,22 @@ function trendScore(post: Post): number {
   return (post.signal_count + 5) / (post.signal_count + post.noise_count + 10);
 }
 
-/**
- * Bigger, warmer pins for posts the community is signalling. Minimum size is
- * large enough to fit the signal count legibly inside.
- */
-function pinStyle(post: Post) {
+/** Bigger, warmer bubbles for posts the community is signalling. */
+function pinAppearance(post: Post) {
   const score = trendScore(post);
-  const size = 28 + Math.round((score - 0.35) * 36);
+  const height = 26 + Math.round((score - 0.35) * 22);
 
   const color =
     score >= 0.65 ? '#e5484d' : score >= 0.55 ? '#f5a524' : score >= 0.45 ? '#8b8d98' : '#c8cad0';
 
   return {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    backgroundColor: color,
+    color,
+    bubble: {
+      height,
+      minWidth: height + 6,
+      borderRadius: height / 2,
+      backgroundColor: color,
+    },
   };
 }
 
@@ -108,13 +108,24 @@ export default function HomeScreen() {
       <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
         <Camera center={center} zoom={16} />
 
-        {posts.map((post) => (
-          <Marker key={post.id} lngLat={[post.longitude, post.latitude]}>
-            <View style={[styles.pin, pinStyle(post)]}>
-              <Text style={styles.pinText}>{post.signal_count}</Text>
-            </View>
-          </Marker>
-        ))}
+        {posts.map((post) => {
+          const { color, bubble } = pinAppearance(post);
+
+          return (
+            <Marker
+              key={post.id}
+              lngLat={[post.longitude, post.latitude]}
+              anchor="bottom"
+            >
+              <View style={styles.pinContainer}>
+                <View style={[styles.bubble, bubble]}>
+                  <Text style={styles.pinText}>{post.signal_count}</Text>
+                </View>
+                <View style={[styles.tail, { borderTopColor: color }]} />
+              </View>
+            </Marker>
+          );
+        })}
       </Map>
 
       <View style={styles.statusBar}>
@@ -138,16 +149,32 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  pin: {
+  pinContainer: {
+    alignItems: 'center',
+  },
+  bubble: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2.5,
+    paddingHorizontal: 6,
+    borderWidth: 2,
     borderColor: '#ffffff',
     shadowColor: '#000000',
     shadowOpacity: 0.3,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
     elevation: 3,
+  },
+  // A downward triangle, drawn with the classic CSS border trick: zero width
+  // and height, with transparent side borders so only the top border shows.
+  tail: {
+    width: 0,
+    height: 0,
+    marginTop: -2,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
   pinText: {
     color: '#ffffff',
