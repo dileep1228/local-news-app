@@ -69,6 +69,16 @@ deliberate "not yet" calls made while keeping scope small.
 - **No authentication** — `user_id` is a client-supplied value on every
   endpoint, not verified. Everything downstream (nearby's exclusion filter,
   reaction ownership) trusts it as-is.
+- **⚠️ The server binds to `0.0.0.0`**, so anyone on the same network can
+  reach it — and since there's no auth, they can read, post, react, and
+  **delete**. This is needed for a phone to reach the dev server, and is
+  fine on a trusted home network. On untrusted Wi-Fi (cafe, airport,
+  coworking, conference), change the bind in `src/main.rs` back to
+  `127.0.0.1` or don't run the server. The risk is `0.0.0.0` *combined
+  with* no auth — binding to all interfaces is normal for real servers,
+  they just require you to prove who you are first. Never expose this
+  port publicly as-is; a real deployment needs HTTPS, a reverse proxy,
+  and authentication.
 - **No user accounts/profiles** — no `users` table, no signup/login/logout,
   no sessions. A real prerequisite for real authentication.
 - **No caching** — trending in particular recomputes from scratch on every
