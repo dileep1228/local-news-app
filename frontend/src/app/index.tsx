@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { Camera, Map } from '@maplibre/maplibre-react-native';
+import { Camera, Map, Marker } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 
 const API_URL = 'http://10.0.0.112:3000';
 const USER_ID = 1;
@@ -73,21 +70,30 @@ export default function HomeScreen() {
 
   if (!center) {
     return (
-      <ThemedView style={styles.centered}>
-        <ThemedText>Finding your location...</ThemedText>
-      </ThemedView>
+      <View style={styles.centered}>
+        <Text>Finding your location...</Text>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
         <Camera center={center} zoom={16} />
+
+        {posts.map((post) => (
+          <Marker key={post.id} lngLat={[post.longitude, post.latitude]}>
+            <View style={styles.pin} />
+          </Marker>
+        ))}
       </Map>
-      <ThemedText style={styles.status}>
-        {error ?? `${posts.length} posts nearby`}
-      </ThemedText>
-    </ThemedView>
+
+      <View style={styles.statusBar}>
+        <Text style={styles.statusText}>
+          {error ?? `${posts.length} posts nearby`}
+        </Text>
+      </View>
+    </View>
   );
 }
 
@@ -103,9 +109,26 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  status: {
+  pin: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#e5484d',
+    borderWidth: 2.5,
+    borderColor: '#ffffff',
+  },
+  statusBar: {
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
