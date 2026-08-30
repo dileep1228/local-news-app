@@ -19,6 +19,33 @@ type Post = {
   noise_count: number;
 };
 
+/**
+ * Same smoothed score the backend ranks by: a post starts at a neutral 0.5
+ * and needs real engagement before its own ratio dominates.
+ */
+function trendScore(post: Post): number {
+  return (post.signal_count + 5) / (post.signal_count + post.noise_count + 10);
+}
+
+/**
+ * Bigger, warmer pins for posts the community is signalling. Minimum size is
+ * large enough to fit the signal count legibly inside.
+ */
+function pinStyle(post: Post) {
+  const score = trendScore(post);
+  const size = 28 + Math.round((score - 0.35) * 36);
+
+  const color =
+    score >= 0.65 ? '#e5484d' : score >= 0.55 ? '#f5a524' : score >= 0.45 ? '#8b8d98' : '#c8cad0';
+
+  return {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: color,
+  };
+}
+
 export default function HomeScreen() {
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -83,7 +110,9 @@ export default function HomeScreen() {
 
         {posts.map((post) => (
           <Marker key={post.id} lngLat={[post.longitude, post.latitude]}>
-            <View style={styles.pin} />
+            <View style={[styles.pin, pinStyle(post)]}>
+              <Text style={styles.pinText}>{post.signal_count}</Text>
+            </View>
           </Marker>
         ))}
       </Map>
@@ -110,12 +139,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pin: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#e5484d',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2.5,
     borderColor: '#ffffff',
+    shadowColor: '#000000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+  },
+  pinText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   statusBar: {
     position: 'absolute',
