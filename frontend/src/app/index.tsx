@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Camera, Map, Marker } from '@maplibre/maplibre-react-native';
+import { Camera, GeoJSONSource, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 
 const API_URL = 'http://10.0.0.112:3000';
@@ -25,6 +25,31 @@ type Post = {
  */
 function trendScore(post: Post): number {
   return (post.signal_count + 5) / (post.signal_count + post.noise_count + 10);
+}
+
+/**
+ * A circle as a GeoJSON polygon, so it scales with the map like real geography
+ * rather than staying a fixed pixel size.
+ */
+function circlePolygon(
+  [lon, lat]: [number, number],
+  radiusMetres: number,
+  steps = 64,
+): GeoJSON.Feature<GeoJSON.Polygon> {
+  const latRadius = radiusMetres / 111_320;
+  const lonRadius = radiusMetres / (111_320 * Math.cos((lat * Math.PI) / 180));
+
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const angle = (i / steps) * 2 * Math.PI;
+    ring.push([lon + lonRadius * Math.cos(angle), lat + latRadius * Math.sin(angle)]);
+  }
+
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [ring] },
+  };
 }
 
 /** Bigger, warmer bubbles for posts the community is signalling. */
@@ -135,6 +160,20 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
         <Camera center={center} zoom={16} />
+
+        <GeoJSONSource id="search-area" data={circlePolygon(center, RADIUS_METERS)} />
+        <Layer
+          id="search-area-fill"
+          type="fill"
+          source="search-area"
+          paint={{ 'fill-color': '#3b82f6', 'fill-opacity': 0.08 }}
+        />
+        <Layer
+          id="search-area-outline"
+          type="line"
+          source="search-area"
+          paint={{ 'line-color': '#3b82f6', 'line-width': 2, 'line-opacity': 0.5 }}
+        />
 
         {posts.map((post) => {
           const { color, bubble } = pinAppearance(post);
