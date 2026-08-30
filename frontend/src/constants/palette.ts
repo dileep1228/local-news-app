@@ -32,11 +32,16 @@ export const palette = {
   },
 } as const;
 
-/** The search-radius circle: a soft ink wash, not a competing colour. */
+/**
+ * The search-radius circle. On a greyscale basemap a soft grey outline
+ * disappears, so it reads as a dashed boundary instead - distinguished by
+ * pattern rather than by colour, which keeps the chrome monochrome.
+ */
 export const searchAreaStyle = {
   fillColor: palette.ink,
-  fillOpacity: 0.05,
+  fillOpacity: 0.06,
   lineColor: palette.ink,
-  lineOpacity: 0.28,
-  lineWidth: 1.5,
+  lineOpacity: 0.6,
+  lineWidth: 2,
+  lineDasharray: [3, 2],
 };

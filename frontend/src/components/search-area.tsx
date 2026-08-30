@@ -36,6 +36,7 @@ export function SearchArea({ center, radiusMetres }: Props) {
           'line-color': searchAreaStyle.lineColor,
           'line-width': searchAreaStyle.lineWidth,
           'line-opacity': searchAreaStyle.lineOpacity,
+          'line-dasharray': searchAreaStyle.lineDasharray,
         }}
       />
     </>
