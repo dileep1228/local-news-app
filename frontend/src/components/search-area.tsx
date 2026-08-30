@@ -1,5 +1,6 @@
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 
+import { searchAreaStyle } from '@/constants/palette';
 import { circlePolygon } from '@/lib/geo';
 import type { LngLat } from '@/types/post';
 
@@ -22,13 +23,20 @@ export function SearchArea({ center, radiusMetres }: Props) {
         id="search-area-fill"
         type="fill"
         source={SOURCE_ID}
-        paint={{ 'fill-color': '#3b82f6', 'fill-opacity': 0.08 }}
+        paint={{
+          'fill-color': searchAreaStyle.fillColor,
+          'fill-opacity': searchAreaStyle.fillOpacity,
+        }}
       />
       <Layer
         id="search-area-outline"
         type="line"
         source={SOURCE_ID}
-        paint={{ 'line-color': '#3b82f6', 'line-width': 2, 'line-opacity': 0.5 }}
+        paint={{
+          'line-color': searchAreaStyle.lineColor,
+          'line-width': searchAreaStyle.lineWidth,
+          'line-opacity': searchAreaStyle.lineOpacity,
+        }}
       />
     </>
   );

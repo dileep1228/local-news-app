@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { palette } from '@/constants/palette';
 import type { Post, Reaction } from '@/types/post';
 
 type Props = {
@@ -25,7 +26,7 @@ export function PostCard({ post, disabled, bottomOffset, onReact, onDismiss }: P
           disabled={disabled}
           onPress={() => onReact('noise')}
         >
-          <Text style={styles.buttonText}>Noise</Text>
+          <Text style={[styles.buttonText, styles.noiseButtonText]}>Noise</Text>
         </Pressable>
 
         <Pressable
@@ -49,25 +50,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: palette.paper,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     gap: 10,
-    shadowColor: '#000000',
+    shadowColor: palette.ink,
     shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
   message: {
-    color: '#1c2024',
+    color: palette.ink,
     fontSize: 17,
     fontWeight: '600',
     textAlign: 'center',
   },
   meta: {
-    color: '#60646c',
+    color: palette.muted,
     fontSize: 13,
   },
   actions: {
@@ -81,18 +82,21 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   noiseButton: {
-    backgroundColor: '#8b8d98',
+    backgroundColor: palette.subtle,
+  },
+  noiseButtonText: {
+    color: palette.muted,
   },
   signalButton: {
-    backgroundColor: '#e5484d',
+    backgroundColor: palette.ink,
   },
   buttonText: {
-    color: '#ffffff',
+    color: palette.onDark,
     fontSize: 15,
     fontWeight: '700',
   },
   dismiss: {
-    color: '#60646c',
+    color: palette.muted,
     fontSize: 13,
     marginTop: 2,
   },

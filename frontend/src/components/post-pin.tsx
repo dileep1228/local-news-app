@@ -1,6 +1,7 @@
 import { Marker } from '@maplibre/maplibre-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { palette } from '@/constants/palette';
 import { pinAppearance } from '@/lib/scoring';
 import type { Post } from '@/types/post';
 
@@ -35,15 +36,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 6,
     borderWidth: 2,
-    borderColor: '#ffffff',
-    shadowColor: '#000000',
+    borderColor: palette.paper,
+    shadowColor: palette.ink,
     shadowOpacity: 0.3,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
     elevation: 3,
   },
   bubbleSelected: {
-    borderColor: '#1c2024',
+    borderColor: palette.ink,
     borderWidth: 3,
   },
   // A downward triangle, drawn with the classic CSS border trick: zero width
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     borderRightColor: 'transparent',
   },
   text: {
-    color: '#ffffff',
+    color: palette.onDark,
     fontWeight: '700',
   },
 });

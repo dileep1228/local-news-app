@@ -9,7 +9,11 @@ export const API_URL = 'http://10.0.0.112:3000';
 /** Hardcoded until there's real authentication. */
 export const USER_ID = 1;
 
-export const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+/**
+ * Near-greyscale basemap, so the coloured pins carry all the emphasis.
+ * Alternatives from the same provider: `liberty` (full colour), `bright`.
+ */
+export const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
 /** Fallback when location permission is denied. */
 export const FALLBACK_CENTER: LngLat = [-122.3321, 47.6062];

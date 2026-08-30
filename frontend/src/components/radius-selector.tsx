@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RADIUS_OPTIONS } from '@/constants/config';
+import { palette } from '@/constants/palette';
 
 type Props = {
   selectedIndex: number;
@@ -39,9 +40,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     padding: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    backgroundColor: palette.paper,
     borderRadius: 22,
-    shadowColor: '#000000',
+    shadowColor: palette.ink,
     shadowOpacity: 0.2,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -53,14 +54,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   chipActive: {
-    backgroundColor: '#1c2024',
+    backgroundColor: palette.ink,
   },
   chipText: {
-    color: '#60646c',
+    color: palette.muted,
     fontSize: 13,
     fontWeight: '600',
   },
   chipTextActive: {
-    color: '#ffffff',
+    color: palette.onDark,
   },
 });
