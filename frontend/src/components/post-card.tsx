@@ -7,18 +7,34 @@ type Props = {
   post: Post;
   disabled: boolean;
   bottomOffset: number;
+  remaining: number;
   onReact: (reaction: Reaction) => void;
-  onDismiss: () => void;
+  onSkip: () => void;
+  onClose: () => void;
 };
 
-/** The selected post, with Signal / Noise actions. */
-export function PostCard({ post, disabled, bottomOffset, onReact, onDismiss }: Props) {
+/** The current post in the queue, with Signal / Noise actions. */
+export function PostCard({
+  post,
+  disabled,
+  bottomOffset,
+  remaining,
+  onReact,
+  onSkip,
+  onClose,
+}: Props) {
   return (
     <View style={[styles.card, { bottom: bottomOffset }]}>
+      <View style={styles.header}>
+        <Text style={styles.counter}>
+          {remaining} left · {post.signal_count} signal · {post.noise_count} noise
+        </Text>
+        <Pressable onPress={onClose} hitSlop={12}>
+          <Text style={styles.close}>✕</Text>
+        </Pressable>
+      </View>
+
       <Text style={styles.message}>{post.message}</Text>
-      <Text style={styles.meta}>
-        {post.signal_count} signal · {post.noise_count} noise
-      </Text>
 
       <View style={styles.actions}>
         <Pressable
@@ -38,8 +54,10 @@ export function PostCard({ post, disabled, bottomOffset, onReact, onDismiss }: P
         </Pressable>
       </View>
 
-      <Pressable onPress={onDismiss} hitSlop={12}>
-        <Text style={styles.dismiss}>Dismiss</Text>
+      <Pressable onPress={onSkip} hitSlop={12} disabled={remaining <= 1}>
+        <Text style={[styles.skip, remaining <= 1 && styles.skipDisabled]}>
+          Skip for now
+        </Text>
       </Pressable>
     </View>
   );
@@ -61,15 +79,26 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+  },
+  counter: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  close: {
+    color: palette.muted,
+    fontSize: 15,
+  },
   message: {
     color: palette.ink,
     fontSize: 17,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  meta: {
-    color: palette.muted,
-    fontSize: 13,
   },
   actions: {
     flexDirection: 'row',
@@ -95,9 +124,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  dismiss: {
+  skip: {
     color: palette.muted,
     fontSize: 13,
     marginTop: 2,
+  },
+  skipDisabled: {
+    opacity: 0.35,
   },
 });

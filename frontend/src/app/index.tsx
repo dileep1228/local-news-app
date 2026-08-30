@@ -39,10 +39,29 @@ export default function HomeScreen() {
     setRadiusIndex(index);
   }
 
+  /**
+   * Advance through the queue rather than dropping back to the map, so a
+   * session is "react, react, react" instead of a tap between each one.
+   * Posts are score-ordered, so this walks from most to least signalled.
+   */
+  function advancePast(post: Post) {
+    const index = posts.findIndex((p) => p.id === post.id);
+    const remaining = posts.filter((p) => p.id !== post.id);
+
+    // After removing index `index`, whatever followed now sits at `index`.
+    setSelected(remaining[index] ?? remaining[0] ?? null);
+  }
+
   async function handleReact(reaction: 'signal' | 'noise') {
     if (!selected) return;
-    await react(selected, reaction);
-    setSelected(null);
+
+    const current = selected;
+    advancePast(current);
+    await react(current, reaction);
+  }
+
+  function handleSkip() {
+    if (selected) advancePast(selected);
   }
 
   return (
@@ -56,6 +75,7 @@ export default function HomeScreen() {
             key={post.id}
             post={post}
             selected={selected?.id === post.id}
+            dimmed={selected !== null && selected.id !== post.id}
             onPress={() => setSelected(post)}
           />
         ))}
@@ -66,8 +86,10 @@ export default function HomeScreen() {
           post={selected}
           disabled={reacting}
           bottomOffset={insets.bottom + 24}
+          remaining={posts.length}
           onReact={handleReact}
-          onDismiss={() => setSelected(null)}
+          onSkip={handleSkip}
+          onClose={() => setSelected(null)}
         />
       ) : error ? (
         <StatusBarMessage text={error} bottomOffset={insets.bottom + 32} />
