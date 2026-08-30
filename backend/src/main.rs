@@ -34,12 +34,14 @@ async fn main() {
 
     let app = build_app(state);
 
+    // 0.0.0.0 (not 127.0.0.1) so devices on the same network - like a phone
+    // running the app - can reach this, not just localhost.
     let listener =
-        tokio::net::TcpListener::bind("127.0.0.1:3000")
+        tokio::net::TcpListener::bind("0.0.0.0:3000")
             .await
             .unwrap();
 
-    tracing::info!("Server running on http://127.0.0.1:3000");
+    tracing::info!("Server running on http://0.0.0.0:3000");
 
     axum::serve(listener, app)
         .await

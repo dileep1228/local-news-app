@@ -7,10 +7,24 @@ import * as Location from 'expo-location';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
+const API_URL = 'http://10.0.0.112:3000';
+const USER_ID = 1;
+const RADIUS_METERS = 500;
 const SEATTLE: [number, number] = [-122.3321, 47.6062];
+
+type Post = {
+  id: number;
+  user_id: number;
+  message: string;
+  latitude: number;
+  longitude: number;
+  signal_count: number;
+  noise_count: number;
+};
 
 export default function HomeScreen() {
   const [center, setCenter] = useState<[number, number] | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +44,33 @@ export default function HomeScreen() {
     loadLocation();
   }, []);
 
+  useEffect(() => {
+    if (!center) return;
+
+    async function loadPosts() {
+      const [longitude, latitude] = center!;
+      const url =
+        `${API_URL}/posts/nearby?user_id=${USER_ID}` +
+        `&latitude=${latitude}&longitude=${longitude}` +
+        `&radius=${RADIUS_METERS}&sort=score`;
+
+      try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          setError(`Server returned ${response.status}`);
+          return;
+        }
+
+        setPosts(await response.json());
+      } catch (e) {
+        setError(`Could not reach the server: ${e}`);
+      }
+    }
+
+    loadPosts();
+  }, [center]);
+
   if (!center) {
     return (
       <ThemedView style={styles.centered}>
@@ -43,8 +84,8 @@ export default function HomeScreen() {
       <Map style={styles.map} mapStyle="https://tiles.openfreemap.org/styles/liberty">
         <Camera center={center} zoom={16} />
       </Map>
-      <ThemedText style={styles.error}>
-        {error ?? `${center[1].toFixed(5)}, ${center[0].toFixed(5)}`}
+      <ThemedText style={styles.status}>
+        {error ?? `${posts.length} posts nearby`}
       </ThemedText>
     </ThemedView>
   );
@@ -62,7 +103,7 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  error: {
+  status: {
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
