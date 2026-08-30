@@ -18,17 +18,21 @@ export const palette = {
   overlay: 'rgba(46, 42, 36, 0.84)',
   onDark: '#fdf8f0',
 
-  /** Cold (noised) to hot (signalled). */
+  /**
+   * Cold (noised) to hot (signalled). The cold end stays muted so ignored
+   * posts recede, while the hot end is vivid - the gap between them is what
+   * makes the ranking readable at a glance.
+   */
   heat: {
-    coldest: '#ded6c8',
-    colder: '#d1c8b8',
-    cold: '#bdb2a0',
-    neutral: '#a2988a',
-    warm: '#d9a55c',
-    warmer: '#c98b3a',
-    hot: '#bd6b30',
-    hotter: '#a8452b',
-    hottest: '#8c3421',
+    coldest: '#dcd7cd',
+    colder: '#cdc6ba',
+    cold: '#b5ada0',
+    neutral: '#9d9384',
+    warm: '#ffc93c',
+    warmer: '#ff9f1c',
+    hot: '#ff6b35',
+    hotter: '#f4212e',
+    hottest: '#d10a2f',
   },
 } as const;
 
