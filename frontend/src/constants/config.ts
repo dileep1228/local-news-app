@@ -23,8 +23,8 @@ export const RADIUS_OPTIONS = [
   { metres: 500, label: '500m', zoom: 15 },
   { metres: 2000, label: '2km', zoom: 13 },
   { metres: 10000, label: '10km', zoom: 11 },
-  // 50km is the backend's hard cap - requests above it are rejected.
-  { metres: 50000, label: '50km', zoom: 8 },
+  // The backend rejects anything above 50km; 25km stays well inside that.
+  { metres: 25000, label: '25km', zoom: 9 },
 ];
 
 export type RadiusOption = (typeof RADIUS_OPTIONS)[number];
