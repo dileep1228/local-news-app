@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Camera, Map, Marker } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
@@ -49,6 +49,8 @@ function pinAppearance(post: Post) {
 export default function HomeScreen() {
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [selected, setSelected] = useState<Post | null>(null);
+  const [reacting, setReacting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,6 +97,32 @@ export default function HomeScreen() {
     loadPosts();
   }, [center]);
 
+  async function react(post: Post, reaction: 'signal' | 'noise') {
+    setReacting(true);
+
+    try {
+      const response = await fetch(`${API_URL}/posts/${post.id}/reaction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: USER_ID, reaction }),
+      });
+
+      // 409 means we already reacted to this one - the post should still leave
+      // the feed, so treat it the same as success rather than as an error.
+      if (!response.ok && response.status !== 409) {
+        setError(`Reaction failed: ${response.status}`);
+        return;
+      }
+
+      setPosts((current) => current.filter((p) => p.id !== post.id));
+      setSelected(null);
+    } catch (e) {
+      setError(`Could not reach the server: ${e}`);
+    } finally {
+      setReacting(false);
+    }
+  }
+
   if (!center) {
     return (
       <View style={styles.centered}>
@@ -110,15 +138,19 @@ export default function HomeScreen() {
 
         {posts.map((post) => {
           const { color, bubble } = pinAppearance(post);
+          const isSelected = selected?.id === post.id;
 
           return (
             <Marker
               key={post.id}
               lngLat={[post.longitude, post.latitude]}
               anchor="bottom"
+              onPress={() => setSelected(post)}
             >
               <View style={styles.pinContainer}>
-                <View style={[styles.bubble, bubble]}>
+                <View
+                  style={[styles.bubble, bubble, isSelected && styles.bubbleSelected]}
+                >
                   <Text style={styles.pinText}>{post.signal_count}</Text>
                 </View>
                 <View style={[styles.tail, { borderTopColor: color }]} />
@@ -128,11 +160,45 @@ export default function HomeScreen() {
         })}
       </Map>
 
-      <View style={styles.statusBar}>
-        <Text style={styles.statusText}>
-          {error ?? `${posts.length} posts nearby`}
-        </Text>
-      </View>
+      {selected ? (
+        <View style={styles.card}>
+          <Text style={styles.cardMessage}>{selected.message}</Text>
+          <Text style={styles.cardMeta}>
+            {selected.signal_count} signal · {selected.noise_count} noise
+          </Text>
+
+          <View style={styles.cardActions}>
+            <Pressable
+              style={[styles.button, styles.noiseButton]}
+              disabled={reacting}
+              onPress={() => react(selected, 'noise')}
+            >
+              <Text style={styles.buttonText}>Noise</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.button, styles.signalButton]}
+              disabled={reacting}
+              onPress={() => react(selected, 'signal')}
+            >
+              <Text style={styles.buttonText}>Signal</Text>
+            </Pressable>
+          </View>
+
+          <Pressable onPress={() => setSelected(null)} hitSlop={12}>
+            <Text style={styles.dismiss}>Dismiss</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.statusBar}>
+          <Text style={styles.statusText}>
+            {error ??
+              (posts.length > 0
+                ? `${posts.length} posts nearby - tap a pin`
+                : 'Nothing left nearby')}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -164,6 +230,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     elevation: 3,
   },
+  bubbleSelected: {
+    borderColor: '#1c2024',
+    borderWidth: 3,
+  },
   // A downward triangle, drawn with the classic CSS border trick: zero width
   // and height, with transparent side borders so only the top border shows.
   tail: {
@@ -194,5 +264,57 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  card: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 32,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    gap: 10,
+    shadowColor: '#000000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  cardMessage: {
+    color: '#1c2024',
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  cardMeta: {
+    color: '#60646c',
+    fontSize: 13,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 24,
+  },
+  noiseButton: {
+    backgroundColor: '#8b8d98',
+  },
+  signalButton: {
+    backgroundColor: '#e5484d',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dismiss: {
+    color: '#60646c',
+    fontSize: 13,
+    marginTop: 2,
   },
 });
