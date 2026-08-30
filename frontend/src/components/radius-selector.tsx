@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RADIUS_OPTIONS } from '@/constants/config';
 
@@ -8,15 +8,10 @@ type Props = {
   onSelect: (index: number) => void;
 };
 
-/** Horizontal chips for choosing the search radius. */
+/** Chips for choosing the search radius. Kept to five so they fit without scrolling. */
 export function RadiusSelector({ selectedIndex, topOffset, onSelect }: Props) {
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={[styles.bar, { top: topOffset }]}
-      contentContainerStyle={styles.content}
-    >
+    <View style={[styles.bar, { top: topOffset }]}>
       {RADIUS_OPTIONS.map((option, index) => {
         const active = index === selectedIndex;
 
@@ -32,16 +27,18 @@ export function RadiusSelector({ selectedIndex, topOffset, onSelect }: Props) {
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   bar: {
     position: 'absolute',
-    left: 12,
-    right: 12,
-    maxHeight: 44,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.94)',
     borderRadius: 22,
     shadowColor: '#000000',
@@ -50,14 +47,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 5,
   },
-  content: {
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 5,
-  },
   chip: {
-    paddingVertical: 7,
-    paddingHorizontal: 13,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 16,
   },
   chipActive: {

@@ -21,11 +21,8 @@ export const FALLBACK_CENTER: LngLat = [-122.3321, 47.6062];
 export const RADIUS_OPTIONS = [
   { metres: 200, label: '200m', zoom: 16 },
   { metres: 500, label: '500m', zoom: 15 },
-  { metres: 1000, label: '1km', zoom: 14 },
   { metres: 2000, label: '2km', zoom: 13 },
-  { metres: 5000, label: '5km', zoom: 12 },
   { metres: 10000, label: '10km', zoom: 11 },
-  { metres: 20000, label: '20km', zoom: 10 },
   // 50km is the backend's hard cap - requests above it are rejected.
   { metres: 50000, label: '50km', zoom: 8 },
 ];
