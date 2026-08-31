@@ -171,6 +171,7 @@ const makeStyles = (theme: Theme) =>
   queueLabel: {
     flex: 1,
     color: theme.muted,
+    fontFamily: theme.fonts.numeral,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.4,
@@ -187,6 +188,7 @@ const makeStyles = (theme: Theme) =>
   },
   meta: {
     color: theme.muted,
+    fontFamily: theme.fonts.numeral,
     fontSize: 11.5,
     fontWeight: '600',
     letterSpacing: 0.3,
@@ -199,6 +201,7 @@ const makeStyles = (theme: Theme) =>
   },
   message: {
     color: theme.ink,
+    fontFamily: theme.fonts.display,
     fontSize: 19,
     lineHeight: 26,
     fontWeight: '600',

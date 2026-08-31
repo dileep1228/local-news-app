@@ -96,7 +96,7 @@ export default function HomeScreen() {
             zoom={mode === 'list' ? radius.zoom - 0.6 : radius.zoom}
             padding={mode === 'map' ? { bottom: SHEET_HEIGHT } : undefined}
           />
-          <SearchArea center={center} radiusMetres={radius.metres} />
+          <SearchArea center={center} radiusMetres={radius.metres} theme={theme} />
 
           {posts.map((post) => (
             <PostPin

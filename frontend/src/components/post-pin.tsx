@@ -106,7 +106,7 @@ export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
             { transform: [{ scale }] },
           ]}
         >
-          <Text style={[styles.text, { fontSize, color: textColor }]}>
+          <Text style={[styles.text, { fontSize, color: textColor, fontFamily: theme.fonts.numeral }]}>
             {post.signal_count}
           </Text>
         </Animated.View>

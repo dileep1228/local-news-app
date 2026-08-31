@@ -118,6 +118,7 @@ const makeStyles = (theme: Theme) =>
   },
   meta: {
     color: theme.muted,
+    fontFamily: theme.fonts.numeral,
     fontSize: 9.5,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -127,6 +128,7 @@ const makeStyles = (theme: Theme) =>
   },
   message: {
     color: theme.ink,
+    fontFamily: theme.fonts.display,
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '600',
