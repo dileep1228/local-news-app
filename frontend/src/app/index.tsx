@@ -3,15 +3,22 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PostCard } from '@/components/post-card';
 import { PostPin } from '@/components/post-pin';
+import { PostSheet } from '@/components/post-sheet';
 import { RadiusSelector } from '@/components/radius-selector';
 import { SearchArea } from '@/components/search-area';
 import { StatusBarMessage } from '@/components/status-bar-message';
 import { DEFAULT_RADIUS_INDEX, MAP_STYLE_URL, RADIUS_OPTIONS } from '@/constants/config';
 import { useCurrentLocation } from '@/hooks/use-current-location';
 import { useNearbyPosts } from '@/hooks/use-nearby-posts';
-import type { Post } from '@/types/post';
+import type { Post, Reaction } from '@/types/post';
+
+/**
+ * Roughly how much of the screen the sheet covers. The camera is padded by
+ * this so a selected pin sits in the visible strip above it rather than
+ * behind it.
+ */
+const SHEET_HEIGHT = 330;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -42,7 +49,6 @@ export default function HomeScreen() {
   /**
    * Advance through the queue rather than dropping back to the map, so a
    * session is "react, react, react" instead of a tap between each one.
-   * Posts are score-ordered, so this walks from most to least signalled.
    */
   function advancePast(post: Post) {
     const index = posts.findIndex((p) => p.id === post.id);
@@ -52,7 +58,7 @@ export default function HomeScreen() {
     setSelected(remaining[index] ?? remaining[0] ?? null);
   }
 
-  async function handleReact(reaction: 'signal' | 'noise') {
+  async function handleReact(reaction: Reaction) {
     if (!selected) return;
 
     const current = selected;
@@ -64,10 +70,20 @@ export default function HomeScreen() {
     if (selected) advancePast(selected);
   }
 
+  // Centre on the selected pin so it can't hide behind the sheet; otherwise
+  // stay on the user.
+  const cameraCenter: [number, number] = selected
+    ? [selected.longitude, selected.latitude]
+    : center;
+
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MAP_STYLE_URL}>
-        <Camera center={center} zoom={radius.zoom} />
+        <Camera
+          center={cameraCenter}
+          zoom={radius.zoom}
+          padding={{ bottom: SHEET_HEIGHT }}
+        />
         <SearchArea center={center} radiusMetres={radius.metres} />
 
         {posts.map((post) => (
@@ -81,24 +97,12 @@ export default function HomeScreen() {
         ))}
       </Map>
 
-      {selected ? (
-        <PostCard
-          post={selected}
-          disabled={reacting}
-          bottomOffset={insets.bottom + 24}
-          remaining={posts.length}
-          onReact={handleReact}
-          onSkip={handleSkip}
-          onClose={() => setSelected(null)}
-        />
-      ) : error ? (
-        <StatusBarMessage text={error} bottomOffset={insets.bottom + 32} />
-      ) : posts.length === 0 ? (
+      {error ? (
         <StatusBarMessage
-          text={`Nothing left within ${radius.label}`}
-          bottomOffset={insets.bottom + 24}
+          text={error}
+          bottomOffset={SHEET_HEIGHT + 16}
           action={
-            canWiden
+            posts.length === 0 && canWiden
               ? {
                   label: `Widen to ${RADIUS_OPTIONS[radiusIndex + 1].label}`,
                   onPress: () => changeRadius(radiusIndex + 1),
@@ -106,12 +110,27 @@ export default function HomeScreen() {
               : undefined
           }
         />
-      ) : (
+      ) : posts.length === 0 && canWiden ? (
         <StatusBarMessage
-          text={`${posts.length} posts within ${radius.label} - tap a pin`}
-          bottomOffset={insets.bottom + 32}
+          text={`Nothing left within ${radius.label}`}
+          bottomOffset={SHEET_HEIGHT + 16}
+          action={{
+            label: `Widen to ${RADIUS_OPTIONS[radiusIndex + 1].label}`,
+            onPress: () => changeRadius(radiusIndex + 1),
+          }}
         />
-      )}
+      ) : null}
+
+      <PostSheet
+        post={selected}
+        posts={posts}
+        radiusLabel={radius.label}
+        disabled={reacting}
+        bottomInset={insets.bottom}
+        onSelect={setSelected}
+        onReact={handleReact}
+        onSkip={handleSkip}
+      />
 
       <RadiusSelector
         selectedIndex={radiusIndex}

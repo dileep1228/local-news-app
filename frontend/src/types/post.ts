@@ -4,6 +4,8 @@ export type Post = {
   message: string;
   latitude: number;
   longitude: number;
+  created_at: string;
+  expires_at: string;
   signal_count: number;
   noise_count: number;
 };

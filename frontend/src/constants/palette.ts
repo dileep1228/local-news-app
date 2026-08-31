@@ -17,6 +17,8 @@ export const palette = {
   border: '#ddd3c2',
   overlay: 'rgba(46, 42, 36, 0.84)',
   onDark: '#fdf8f0',
+  /** Terracotta, used sparingly for time-sensitive and secondary emphasis. */
+  accent: '#a8562a',
 
   /**
    * Cold (noised) to hot (signalled). The cold end stays muted so ignored
