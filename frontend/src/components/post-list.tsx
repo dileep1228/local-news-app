@@ -1,8 +1,10 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PostRow } from '@/components/post-row';
-import { ViewToggle, type ViewMode } from '@/components/view-toggle';
-import { palette } from '@/constants/palette';
+import { HeaderControls } from '@/components/header-controls';
+import type { ViewMode } from '@/components/view-toggle';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
 import type { LngLat, Post, Reaction } from '@/types/post';
 
 type Props = {
@@ -32,6 +34,9 @@ export function PostList({
   onReactTo,
   onChangeMode,
 }: Props) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   return (
     <View style={styles.panel}>
       <View style={styles.header}>
@@ -41,7 +46,7 @@ export function PostList({
             {radiusLabel.toUpperCase()} · {posts.length} ACTIVE · SWIPE TO REACT
           </Text>
         </View>
-        <ViewToggle mode={mode} onChange={onChangeMode} />
+        <HeaderControls mode={mode} onChangeMode={onChangeMode} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: bottomInset + 12 }}>
@@ -66,12 +71,13 @@ export function PostList({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   panel: {
     flex: 1,
-    backgroundColor: palette.paper,
+    backgroundColor: theme.paper,
     borderTopWidth: 2,
-    borderTopColor: palette.ink,
+    borderTopColor: theme.ink,
   },
   header: {
     flexDirection: 'row',
@@ -81,24 +87,24 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 10,
     borderBottomWidth: 2,
-    borderBottomColor: palette.ink,
+    borderBottomColor: theme.ink,
   },
   title: {
-    color: palette.ink,
+    color: theme.ink,
     fontSize: 15,
     fontWeight: '800',
   },
   headerMeta: {
-    color: palette.muted,
+    color: theme.muted,
     marginTop: 2,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.7,
   },
   empty: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     lineHeight: 21,
     padding: 20,
   },
-});
+  });

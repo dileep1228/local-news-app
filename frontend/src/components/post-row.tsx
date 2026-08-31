@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
-import { palette } from '@/constants/palette';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
 import { distanceMetres, formatDistance } from '@/lib/geo';
 import { pinAppearance } from '@/lib/scoring';
 import { formatRemaining } from '@/lib/time';
@@ -24,7 +25,10 @@ type Props = {
  * swipe direction: dragging right reveals the *left* actions.
  */
 export function PostRow({ post, active, center, onSelect, onReact }: Props) {
-  const { color } = pinAppearance(post);
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
+  const { color } = pinAppearance(post, theme);
   const away = formatDistance(distanceMetres(center, [post.longitude, post.latitude]));
 
   return (
@@ -66,38 +70,39 @@ export function PostRow({ post, active, center, onSelect, onReact }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   action: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
   signalAction: {
-    backgroundColor: palette.ink,
+    backgroundColor: theme.ink,
     alignItems: 'flex-start',
   },
   signalActionText: {
-    color: palette.onDark,
+    color: theme.onDark,
     fontSize: 14,
     fontWeight: '700',
   },
   noiseAction: {
-    backgroundColor: palette.subtle,
+    backgroundColor: theme.subtle,
     alignItems: 'flex-end',
   },
   noiseActionText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     fontWeight: '700',
   },
   row: {
     flexDirection: 'row',
-    backgroundColor: palette.paper,
+    backgroundColor: theme.paper,
     borderBottomWidth: 1,
-    borderBottomColor: palette.border,
+    borderBottomColor: theme.border,
   },
   rowActive: {
-    backgroundColor: palette.subtle,
+    backgroundColor: theme.subtle,
   },
   rank: {
     width: 6,
@@ -112,16 +117,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   meta: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 9.5,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   metaActive: {
-    color: palette.accent,
+    color: theme.accent,
   },
   message: {
-    color: palette.ink,
+    color: theme.ink,
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '600',
@@ -132,4 +137,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '700',
   },
-});
+  });

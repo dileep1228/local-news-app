@@ -2,7 +2,7 @@ import { Marker } from '@maplibre/maplibre-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { palette } from '@/constants/palette';
+import type { Theme } from '@/theme/themes';
 import { pinAppearance } from '@/lib/scoring';
 import type { Post } from '@/types/post';
 
@@ -11,12 +11,19 @@ type Props = {
   selected: boolean;
   /** True when another pin is selected, so this one steps back. */
   dimmed: boolean;
+  /**
+   * Passed in rather than read from context: these render inside MapLibre's
+   * native Marker, which hosts its children outside the React context tree.
+   */
+  theme: Theme;
   onPress: () => void;
 };
 
 /** A speech bubble sized and coloured by the post's trend score. */
-export function PostPin({ post, selected, dimmed, onPress }: Props) {
-  const { color, bubble, fontSize, textColor } = pinAppearance(post);
+export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
+  const styles = makeStyles(theme);
+
+  const { color, bubble, fontSize, textColor } = pinAppearance(post, theme);
 
   const scale = useRef(new Animated.Value(1)).current;
   const fade = useRef(new Animated.Value(1)).current;
@@ -103,13 +110,14 @@ export function PostPin({ post, selected, dimmed, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   container: {
     alignItems: 'center',
   },
   halo: {
     borderWidth: 2.5,
-    borderColor: palette.ink,
+    borderColor: theme.ink,
     backgroundColor: 'transparent',
   },
   bubble: {
@@ -117,8 +125,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 6,
     borderWidth: 2,
-    borderColor: palette.paper,
-    shadowColor: palette.ink,
+    borderColor: theme.paper,
+    shadowColor: theme.ink,
     shadowOpacity: 0.3,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
@@ -151,4 +159,4 @@ const styles = StyleSheet.create({
   text: {
     fontWeight: '700',
   },
-});
+  });

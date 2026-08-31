@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RADIUS_OPTIONS } from '@/constants/config';
-import { palette } from '@/constants/palette';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
 
 type Props = {
   selectedIndex: number;
@@ -11,6 +12,9 @@ type Props = {
 
 /** Chips for choosing the search radius. Kept to five so they fit without scrolling. */
 export function RadiusSelector({ selectedIndex, topOffset, onSelect }: Props) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   return (
     <View style={[styles.bar, { top: topOffset }]}>
       {RADIUS_OPTIONS.map((option, index) => {
@@ -32,7 +36,8 @@ export function RadiusSelector({ selectedIndex, topOffset, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   bar: {
     position: 'absolute',
     alignSelf: 'center',
@@ -40,9 +45,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     padding: 5,
-    backgroundColor: palette.paper,
+    backgroundColor: theme.paper,
     borderRadius: 22,
-    shadowColor: palette.ink,
+    shadowColor: theme.ink,
     shadowOpacity: 0.2,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -54,14 +59,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   chipActive: {
-    backgroundColor: palette.ink,
+    backgroundColor: theme.ink,
   },
   chipText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 13,
     fontWeight: '600',
   },
   chipTextActive: {
-    color: palette.onDark,
+    color: theme.onDark,
   },
-});
+  });

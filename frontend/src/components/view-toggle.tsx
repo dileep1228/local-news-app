@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { palette } from '@/constants/palette';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
 
 export type ViewMode = 'map' | 'list';
 
@@ -14,6 +15,8 @@ type Props = {
  * whichever header is showing, so it costs the map no space of its own.
  */
 export function ViewToggle({ mode, onChange }: Props) {
+  const styles = makeStyles(useTheme());
+
   return (
     <View style={styles.bar}>
       {(['map', 'list'] as const).map((option) => {
@@ -36,29 +39,30 @@ export function ViewToggle({ mode, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
     padding: 2,
-    backgroundColor: palette.subtle,
-    borderRadius: 14,
+    backgroundColor: theme.subtle,
+    borderRadius: theme.radius.chip,
   },
   option: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    borderRadius: 12,
+    borderRadius: theme.radius.chip,
   },
   optionActive: {
-    backgroundColor: palette.ink,
+    backgroundColor: theme.ink,
   },
   label: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 11.5,
     fontWeight: '700',
   },
   labelActive: {
-    color: palette.onDark,
+    color: theme.onDark,
   },
-});
+  });

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { palette } from '@/constants/palette';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
 
 type Props = {
   text: string;
@@ -10,6 +11,9 @@ type Props = {
 
 /** A pill above the map: either a short status line, or an empty-state prompt. */
 export function StatusBarMessage({ text, bottomOffset, action }: Props) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   if (action) {
     return (
       <View style={[styles.card, { bottom: bottomOffset }]}>
@@ -28,17 +32,18 @@ export function StatusBarMessage({ text, bottomOffset, action }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   pill: {
     position: 'absolute',
     alignSelf: 'center',
-    backgroundColor: palette.overlay,
+    backgroundColor: theme.overlay,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   pillText: {
-    color: palette.onDark,
+    color: theme.onDark,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -46,32 +51,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    backgroundColor: palette.paper,
+    backgroundColor: theme.paper,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     gap: 12,
-    shadowColor: palette.ink,
+    shadowColor: theme.ink,
     shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
   cardText: {
-    color: palette.ink,
+    color: theme.ink,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   button: {
-    backgroundColor: palette.ink,
+    backgroundColor: theme.ink,
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 24,
   },
   buttonText: {
-    color: palette.onDark,
+    color: theme.onDark,
     fontSize: 15,
     fontWeight: '700',
   },
-});
+  });

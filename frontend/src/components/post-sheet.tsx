@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { palette } from '@/constants/palette';
-import { ViewToggle, type ViewMode } from '@/components/view-toggle';
+import { useTheme } from '@/theme/context';
+import type { Theme } from '@/theme/themes';
+import { HeaderControls } from '@/components/header-controls';
+import type { ViewMode } from '@/components/view-toggle';
 import { formatRemaining, lifeFraction } from '@/lib/time';
 import type { Post, Reaction } from '@/types/post';
 
@@ -37,6 +39,9 @@ export function PostSheet({
   onSkip,
   onChangeMode,
 }: Props) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   const upNext = posts.filter((p) => p.id !== post?.id).slice(0, 3);
 
   return (
@@ -50,7 +55,7 @@ export function PostSheet({
               ? `${posts.length} within ${radiusLabel} · sorted by signal`
               : `${posts.length} within ${radiusLabel} · tap a pin`}
         </Text>
-        <ViewToggle mode={mode} onChange={onChangeMode} />
+        <HeaderControls mode={mode} onChangeMode={onChangeMode} />
       </View>
 
       <View style={styles.body}>
@@ -129,18 +134,19 @@ export function PostSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   sheet: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: palette.paper,
+    backgroundColor: theme.paper,
     borderTopWidth: 1,
-    borderTopColor: palette.border,
+    borderTopColor: theme.border,
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
-    shadowColor: palette.ink,
+    shadowColor: theme.ink,
     shadowOpacity: 0.16,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: -8 },
@@ -154,17 +160,17 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: palette.border,
+    borderBottomColor: theme.border,
   },
   grabber: {
     width: 34,
     height: 4,
     borderRadius: 2,
-    backgroundColor: palette.border,
+    backgroundColor: theme.border,
   },
   queueLabel: {
     flex: 1,
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.4,
@@ -180,19 +186,19 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   meta: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 11.5,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   metaAccent: {
-    color: palette.accent,
+    color: theme.accent,
     fontSize: 11.5,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   message: {
-    color: palette.ink,
+    color: theme.ink,
     fontSize: 19,
     lineHeight: 26,
     fontWeight: '600',
@@ -201,19 +207,19 @@ const styles = StyleSheet.create({
     minHeight: 74,
   },
   idleMessage: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 15,
     lineHeight: 22,
     minHeight: 74,
   },
   decayTrack: {
     height: 3,
-    backgroundColor: palette.subtle,
+    backgroundColor: theme.subtle,
     marginBottom: 14,
   },
   decayFill: {
     height: 3,
-    backgroundColor: palette.accent,
+    backgroundColor: theme.accent,
   },
   actions: {
     flexDirection: 'row',
@@ -226,36 +232,36 @@ const styles = StyleSheet.create({
   },
   noiseButton: {
     flex: 1,
-    backgroundColor: palette.subtle,
+    backgroundColor: theme.subtle,
   },
   noiseText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     fontWeight: '700',
   },
   signalButton: {
     flex: 1,
-    backgroundColor: palette.ink,
+    backgroundColor: theme.ink,
   },
   signalText: {
-    color: palette.onDark,
+    color: theme.onDark,
     fontSize: 14,
     fontWeight: '700',
   },
   skipButton: {
     paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: theme.border,
   },
   skipText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     fontWeight: '700',
   },
   upNext: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: palette.border,
+    borderTopColor: theme.border,
   },
   upNextItem: {
     flex: 1,
@@ -264,19 +270,19 @@ const styles = StyleSheet.create({
   },
   upNextDivider: {
     borderRightWidth: 1,
-    borderRightColor: palette.border,
+    borderRightColor: theme.border,
   },
   upNextCount: {
-    color: palette.accent,
+    color: theme.accent,
     fontSize: 9.5,
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   upNextSnippet: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 11.5,
     lineHeight: 15,
     marginTop: 3,
   },
-});
+  });

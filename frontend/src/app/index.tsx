@@ -10,7 +10,8 @@ import { RadiusSelector } from '@/components/radius-selector';
 import { SearchArea } from '@/components/search-area';
 import { StatusBarMessage } from '@/components/status-bar-message';
 import type { ViewMode } from '@/components/view-toggle';
-import { DEFAULT_RADIUS_INDEX, MAP_STYLE_URL, RADIUS_OPTIONS } from '@/constants/config';
+import { DEFAULT_RADIUS_INDEX, RADIUS_OPTIONS } from '@/constants/config';
+import { useTheme } from '@/theme/context';
 import { useCurrentLocation } from '@/hooks/use-current-location';
 import { useNearbyPosts } from '@/hooks/use-nearby-posts';
 import type { Post, Reaction } from '@/types/post';
@@ -24,6 +25,7 @@ const SHEET_HEIGHT = 330;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const [mode, setMode] = useState<ViewMode>('map');
   const [radiusIndex, setRadiusIndex] = useState(DEFAULT_RADIUS_INDEX);
   const [selected, setSelected] = useState<Post | null>(null);
@@ -88,7 +90,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={mode === 'list' ? styles.mapSplit : styles.mapFull}>
-        <Map style={styles.map} mapStyle={MAP_STYLE_URL}>
+        <Map style={styles.map} mapStyle={theme.mapStyleUrl}>
           <Camera
             center={cameraCenter}
             zoom={mode === 'list' ? radius.zoom - 0.6 : radius.zoom}
@@ -102,6 +104,7 @@ export default function HomeScreen() {
               post={post}
               selected={selected?.id === post.id}
               dimmed={selected !== null && selected.id !== post.id}
+              theme={theme}
               onPress={() => setSelected(post)}
             />
           ))}
@@ -155,6 +158,7 @@ export default function HomeScreen() {
         topOffset={insets.top + 12}
         onSelect={changeRadius}
       />
+
     </View>
   );
 }

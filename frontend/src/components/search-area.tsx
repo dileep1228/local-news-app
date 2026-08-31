@@ -1,6 +1,6 @@
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 
-import { searchAreaStyle } from '@/constants/palette';
+import { useTheme } from '@/theme/context';
 import { circlePolygon } from '@/lib/geo';
 import type { LngLat } from '@/types/post';
 
@@ -16,6 +16,8 @@ type Props = {
  * posts in range" rather than a broken map.
  */
 export function SearchArea({ center, radiusMetres }: Props) {
+  const theme = useTheme();
+
   return (
     <>
       <GeoJSONSource id={SOURCE_ID} data={circlePolygon(center, radiusMetres)} />
@@ -24,8 +26,8 @@ export function SearchArea({ center, radiusMetres }: Props) {
         type="fill"
         source={SOURCE_ID}
         paint={{
-          'fill-color': searchAreaStyle.fillColor,
-          'fill-opacity': searchAreaStyle.fillOpacity,
+          'fill-color': theme.ink,
+          'fill-opacity': 0.06,
         }}
       />
       <Layer
@@ -33,10 +35,10 @@ export function SearchArea({ center, radiusMetres }: Props) {
         type="line"
         source={SOURCE_ID}
         paint={{
-          'line-color': searchAreaStyle.lineColor,
-          'line-width': searchAreaStyle.lineWidth,
-          'line-opacity': searchAreaStyle.lineOpacity,
-          'line-dasharray': searchAreaStyle.lineDasharray,
+          'line-color': theme.ink,
+          'line-width': 2,
+          'line-opacity': 0.6,
+          'line-dasharray': [3, 2],
         }}
       />
     </>
