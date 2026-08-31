@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { palette } from '@/constants/palette';
+import { ViewToggle, type ViewMode } from '@/components/view-toggle';
 import { formatRemaining, lifeFraction } from '@/lib/time';
 import type { Post, Reaction } from '@/types/post';
 
@@ -12,9 +13,11 @@ type Props = {
   radiusLabel: string;
   disabled: boolean;
   bottomInset: number;
+  mode: ViewMode;
   onSelect: (post: Post) => void;
   onReact: (reaction: Reaction) => void;
   onSkip: () => void;
+  onChangeMode: (mode: ViewMode) => void;
 };
 
 /**
@@ -28,9 +31,11 @@ export function PostSheet({
   radiusLabel,
   disabled,
   bottomInset,
+  mode,
   onSelect,
   onReact,
   onSkip,
+  onChangeMode,
 }: Props) {
   const upNext = posts.filter((p) => p.id !== post?.id).slice(0, 3);
 
@@ -45,6 +50,7 @@ export function PostSheet({
               ? `${posts.length} within ${radiusLabel} · sorted by signal`
               : `${posts.length} within ${radiusLabel} · tap a pin`}
         </Text>
+        <ViewToggle mode={mode} onChange={onChangeMode} />
       </View>
 
       <View style={styles.body}>

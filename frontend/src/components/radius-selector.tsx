@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     padding: 5,
     backgroundColor: palette.paper,
     borderRadius: 22,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11,
     borderRadius: 16,
   },
   chipActive: {
