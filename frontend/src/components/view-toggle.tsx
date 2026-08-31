@@ -46,13 +46,13 @@ const makeStyles = (theme: Theme) =>
     alignItems: 'center',
     gap: 2,
     padding: 2,
-    backgroundColor: theme.subtle,
-    borderRadius: theme.radius.chip,
+    backgroundColor: theme.block,
+    borderRadius: theme.radius.bar,
   },
   option: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    borderRadius: theme.radius.chip,
+    borderRadius: theme.radius.bar,
   },
   optionActive: {
     backgroundColor: theme.ink,
@@ -63,6 +63,6 @@ const makeStyles = (theme: Theme) =>
     fontWeight: '700',
   },
   labelActive: {
-    color: theme.onDark,
+    color: theme.onAccent,
   },
   });

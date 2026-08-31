@@ -10,13 +10,7 @@ type Props = {
 
 /** Swatches of a theme's heat ramp, so the choice is visible before picking. */
 function Swatches({ option }: { option: Theme }) {
-  const steps = [
-    option.heat.hottest,
-    option.heat.hot,
-    option.heat.warmer,
-    option.heat.neutral,
-    option.heat.coldest,
-  ];
+  const steps = option.heat;
 
   return (
     <View style={pickerStyles.swatchRow}>
@@ -90,13 +84,13 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     backdrop: {
       flex: 1,
-      backgroundColor: theme.overlay,
+      backgroundColor: 'rgba(0, 0, 0, 0.55)',
       justifyContent: 'center',
       paddingHorizontal: 24,
     },
     panel: {
       backgroundColor: theme.paper,
-      borderRadius: theme.radius.card,
+      borderRadius: theme.radius.sheet,
       paddingVertical: 14,
       paddingHorizontal: 6,
     },
@@ -120,7 +114,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: theme.radius.button,
     },
     optionActive: {
-      backgroundColor: theme.subtle,
+      backgroundColor: theme.block,
     },
     optionText: {
       flex: 1,

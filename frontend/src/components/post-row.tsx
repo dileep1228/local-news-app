@@ -82,12 +82,12 @@ const makeStyles = (theme: Theme) =>
     alignItems: 'flex-start',
   },
   signalActionText: {
-    color: theme.onDark,
+    color: theme.onAccent,
     fontSize: 14,
     fontWeight: '700',
   },
   noiseAction: {
-    backgroundColor: theme.subtle,
+    backgroundColor: theme.block,
     alignItems: 'flex-end',
   },
   noiseActionText: {
@@ -99,10 +99,10 @@ const makeStyles = (theme: Theme) =>
     flexDirection: 'row',
     backgroundColor: theme.paper,
     borderBottomWidth: 1,
-    borderBottomColor: theme.border,
+    borderBottomColor: theme.edges.hairline,
   },
   rowActive: {
-    backgroundColor: theme.subtle,
+    backgroundColor: theme.block,
   },
   rank: {
     width: 6,

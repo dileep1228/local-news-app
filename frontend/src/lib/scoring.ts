@@ -1,4 +1,4 @@
-import type { Theme } from '@/theme/themes';
+import { PIN_SIZES, type Theme } from '@/theme/themes';
 import type { Post } from '@/types/post';
 
 /**
@@ -14,37 +14,33 @@ export function trendScore(post: Post): number {
 }
 
 /**
- * Nine discrete size tiers by trend score, biggest first so the first matching
- * threshold wins. A post with no reactions sits at 0.5, in the neutral middle.
+ * Six score tiers, hottest first, per the theme spec. Only colour and shape are
+ * theme-driven; the sizes are shared.
  */
-const TIERS = [
-  { minScore: 0.72, size: 60, step: 'hottest', fontSize: 17 },
-  { minScore: 0.66, size: 52, step: 'hotter', fontSize: 16 },
-  { minScore: 0.61, size: 45, step: 'hot', fontSize: 15 },
-  { minScore: 0.56, size: 39, step: 'warmer', fontSize: 14 },
-  { minScore: 0.51, size: 33, step: 'warm', fontSize: 13 },
-  { minScore: 0.5, size: 28, step: 'neutral', fontSize: 12 },
-  { minScore: 0.45, size: 24, step: 'cold', fontSize: 11 },
-  { minScore: 0.4, size: 21, step: 'colder', fontSize: 10 },
-  { minScore: 0, size: 18, step: 'coldest', fontSize: 9 },
-] as const;
+const THRESHOLDS = [0.68, 0.6, 0.54, 0.5, 0.45, 0] as const;
+
+/** Which of the six tiers a post falls into. 0 is hottest. */
+export function pinTier(post: Post): number {
+  const score = trendScore(post);
+  const index = THRESHOLDS.findIndex((min) => score >= min);
+  return index === -1 ? THRESHOLDS.length - 1 : index;
+}
 
 /** Bigger, hotter bubbles for posts the community is signalling. */
 export function pinAppearance(post: Post, theme: Theme) {
-  const score = trendScore(post);
-  const tier = TIERS.find((t) => score >= t.minScore) ?? TIERS[TIERS.length - 1];
-  const color = theme.heat[tier.step];
-
-  const textColor = theme.darkTextSteps.includes(tier.step) ? theme.ink : theme.onDark;
+  const tier = pinTier(post);
+  const size = PIN_SIZES[tier];
+  const color = theme.heat[tier];
 
   return {
     color,
-    textColor,
-    fontSize: tier.fontSize,
+    // The spec gives a per-theme count of how many hot tiers take light text.
+    textColor: tier < theme.lightTextTiers ? '#ffffff' : theme.ink,
+    fontSize: Math.max(9, Math.round(size * 0.3)),
     bubble: {
-      height: tier.size,
-      minWidth: tier.size + 6,
-      borderRadius: theme.radius.roundPins ? tier.size / 2 : 0,
+      height: size,
+      minWidth: size + 6,
+      borderRadius: theme.radius.roundPins ? size / 2 : 0,
       backgroundColor: color,
     },
   };

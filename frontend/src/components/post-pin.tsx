@@ -2,7 +2,16 @@ import { Marker } from '@maplibre/maplibre-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import type { Theme } from '@/theme/themes';
+import {
+  PIN_BORDER_WIDTH,
+  PIN_BORDER_WIDTH_SELECTED,
+  PIN_HALO_INSET,
+  PIN_HALO_OPACITY,
+  PIN_SELECTED_SCALE,
+  PIN_UNSELECTED_DIM,
+  TRANSITION_MS,
+  type Theme,
+} from '@/theme/themes';
 import { pinAppearance } from '@/lib/scoring';
 import type { Post } from '@/types/post';
 
@@ -32,7 +41,7 @@ export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
   // Spring rather than a linear tween, so selecting a pin has a bit of bounce.
   useEffect(() => {
     Animated.spring(scale, {
-      toValue: selected ? 1.25 : 1,
+      toValue: selected ? PIN_SELECTED_SCALE : 1,
       friction: 5,
       tension: 90,
       useNativeDriver: true,
@@ -41,7 +50,7 @@ export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
 
   useEffect(() => {
     Animated.timing(fade, {
-      toValue: dimmed ? 0.45 : 1,
+      toValue: dimmed ? PIN_UNSELECTED_DIM : 1,
       duration: 200,
       useNativeDriver: true,
     }).start();
@@ -65,7 +74,7 @@ export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
     return () => loop.stop();
   }, [selected, ping]);
 
-  const haloBase = bubble.height + 8;
+  const haloBase = bubble.height + PIN_HALO_INSET * 2;
 
   return (
     <Marker lngLat={[post.longitude, post.latitude]} anchor="bottom" onPress={onPress}>
@@ -80,7 +89,7 @@ export function PostPin({ post, selected, dimmed, theme, onPress }: Props) {
                 height: haloBase,
                 borderRadius: haloBase / 2,
                 marginBottom: -haloBase,
-                opacity: ping.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] }),
+                opacity: ping.interpolate({ inputRange: [0, 1], outputRange: [PIN_HALO_OPACITY, 0] }),
                 transform: [
                   { scale: ping.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.1] }) },
                 ],
@@ -124,7 +133,7 @@ const makeStyles = (theme: Theme) =>
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
-    borderWidth: 2,
+    borderWidth: PIN_BORDER_WIDTH,
     borderColor: theme.paper,
     shadowColor: theme.ink,
     shadowOpacity: 0.3,
@@ -133,7 +142,7 @@ const makeStyles = (theme: Theme) =>
     elevation: 3,
   },
   bubbleSelected: {
-    borderWidth: 3,
+    borderWidth: PIN_BORDER_WIDTH_SELECTED,
     shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 12,

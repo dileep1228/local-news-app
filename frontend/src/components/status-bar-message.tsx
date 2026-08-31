@@ -37,13 +37,13 @@ const makeStyles = (theme: Theme) =>
   pill: {
     position: 'absolute',
     alignSelf: 'center',
-    backgroundColor: theme.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   pillText: {
-    color: theme.onDark,
+    color: theme.onAccent,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -75,7 +75,7 @@ const makeStyles = (theme: Theme) =>
     borderRadius: 24,
   },
   buttonText: {
-    color: theme.onDark,
+    color: theme.onAccent,
     fontSize: 15,
     fontWeight: '700',
   },

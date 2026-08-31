@@ -67,6 +67,6 @@ const makeStyles = (theme: Theme) =>
     fontWeight: '600',
   },
   chipTextActive: {
-    color: theme.onDark,
+    color: theme.onAccent,
   },
   });

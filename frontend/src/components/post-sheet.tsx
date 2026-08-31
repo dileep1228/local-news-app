@@ -143,7 +143,7 @@ const makeStyles = (theme: Theme) =>
     bottom: 0,
     backgroundColor: theme.paper,
     borderTopWidth: 1,
-    borderTopColor: theme.border,
+    borderTopColor: theme.edges.hairline,
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
     shadowColor: theme.ink,
@@ -160,13 +160,13 @@ const makeStyles = (theme: Theme) =>
     paddingTop: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: theme.border,
+    borderBottomColor: theme.edges.hairline,
   },
   grabber: {
     width: 34,
     height: 4,
     borderRadius: 2,
-    backgroundColor: theme.border,
+    backgroundColor: theme.edges.hairline,
   },
   queueLabel: {
     flex: 1,
@@ -214,7 +214,7 @@ const makeStyles = (theme: Theme) =>
   },
   decayTrack: {
     height: 3,
-    backgroundColor: theme.subtle,
+    backgroundColor: theme.block,
     marginBottom: 14,
   },
   decayFill: {
@@ -232,7 +232,7 @@ const makeStyles = (theme: Theme) =>
   },
   noiseButton: {
     flex: 1,
-    backgroundColor: theme.subtle,
+    backgroundColor: theme.block,
   },
   noiseText: {
     color: theme.muted,
@@ -244,14 +244,14 @@ const makeStyles = (theme: Theme) =>
     backgroundColor: theme.ink,
   },
   signalText: {
-    color: theme.onDark,
+    color: theme.onAccent,
     fontSize: 14,
     fontWeight: '700',
   },
   skipButton: {
     paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: theme.border,
+    borderColor: theme.edges.hairline,
   },
   skipText: {
     color: theme.muted,
@@ -261,7 +261,7 @@ const makeStyles = (theme: Theme) =>
   upNext: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: theme.border,
+    borderTopColor: theme.edges.hairline,
   },
   upNextItem: {
     flex: 1,
@@ -270,7 +270,7 @@ const makeStyles = (theme: Theme) =>
   },
   upNextDivider: {
     borderRightWidth: 1,
-    borderRightColor: theme.border,
+    borderRightColor: theme.edges.hairline,
   },
   upNextCount: {
     color: theme.accent,

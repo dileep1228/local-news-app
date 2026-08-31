@@ -43,8 +43,8 @@ const makeStyles = (theme: Theme) =>
     themeButton: {
       paddingVertical: 5,
       paddingHorizontal: 9,
-      backgroundColor: theme.subtle,
-      borderRadius: theme.radius.chip,
+      backgroundColor: theme.block,
+      borderRadius: theme.radius.bar,
     },
     themeButtonText: {
       color: theme.muted,
