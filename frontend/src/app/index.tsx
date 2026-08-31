@@ -29,6 +29,12 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<ViewMode>('map');
   const [radiusIndex, setRadiusIndex] = useState(DEFAULT_RADIUS_INDEX);
   const [selected, setSelected] = useState<Post | null>(null);
+  // MapLibre discards custom sources and layers whenever the style reloads, so
+  // the search ring has to be remounted after each load. Keying off this
+  // counter rather than the style URL means the remount happens once the new
+  // style is ready, not while it is being swapped in - doing it during the
+  // swap crashed the native side.
+  const [styleEpoch, setStyleEpoch] = useState(0);
 
   const radius = RADIUS_OPTIONS[radiusIndex];
   const canWiden = radiusIndex < RADIUS_OPTIONS.length - 1;
@@ -90,13 +96,22 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={mode === 'list' ? styles.mapSplit : styles.mapFull}>
-        <Map style={styles.map} mapStyle={theme.mapStyleUrl}>
+        <Map
+          style={styles.map}
+          mapStyle={theme.mapStyleUrl}
+          onDidFinishLoadingStyle={() => setStyleEpoch((n) => n + 1)}
+        >
           <Camera
             center={cameraCenter}
             zoom={mode === 'list' ? radius.zoom - 0.6 : radius.zoom}
             padding={mode === 'map' ? { bottom: SHEET_HEIGHT } : undefined}
           />
-          <SearchArea center={center} radiusMetres={radius.metres} theme={theme} />
+          <SearchArea
+            key={styleEpoch}
+            center={center}
+            radiusMetres={radius.metres}
+            theme={theme}
+          />
 
           {posts.map((post) => (
             <PostPin

@@ -27,7 +27,7 @@ export function SearchArea({ center, radiusMetres, theme }: Props) {
         source={SOURCE_ID}
         paint={{
           'fill-color': theme.ink,
-          'fill-opacity': 0.08,
+          'fill-opacity': 0.1,
         }}
       />
       <Layer
@@ -35,10 +35,9 @@ export function SearchArea({ center, radiusMetres, theme }: Props) {
         type="line"
         source={SOURCE_ID}
         paint={{
-          'line-color': theme.ink,
-          'line-width': 2.5,
-          'line-opacity': 0.85,
-          'line-dasharray': [3, 2],
+          'line-color': theme.accent,
+          'line-width': 3,
+          'line-opacity': 1,
         }}
       />
     </>
