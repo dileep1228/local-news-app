@@ -25,10 +25,15 @@ import type { Theme } from '@/theme/themes';
  * - Every rule the backend enforces is visible *before* Post is tapped, not
  *   discovered after. Over-length is caught here; duplicates still surface
  *   from the server, since the client has no list of the author's live posts.
- * - Location is a line of text with a Move action, not a draggable pin. The
- *   post is about where you are, and a freely draggable pin invites posting
- *   about places you are not.
+ * - Location is a line of text, not a draggable pin. The post is about where
+ *   you are, and a freely draggable pin invites posting about places you are
+ *   not. The design sheet paired that line with a Move action, left unbuilt
+ *   because it never settled whether Move opens a map or a list of nearby
+ *   corners.
  */
+/** Starting guess only, replaced by the sheet's real height on first layout. */
+const SHEET_HEIGHT = 420;
+
 export default function ComposeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -39,6 +44,7 @@ export default function ComposeScreen() {
   const [message, setMessage] = useState('');
   const [posting, setPosting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [sheetHeight, setSheetHeight] = useState(SHEET_HEIGHT);
 
   function edit(text: string) {
     setMessage(text);
@@ -79,7 +85,10 @@ export default function ComposeScreen() {
     <View style={styles.screen}>
       {center ? (
         <Map style={styles.map} mapStyle={theme.mapStyleUrl}>
-          <Camera center={center} zoom={16} padding={{ bottom: 420 }} />
+          {/* Padded by the measured sheet so the pin sits in the strip above
+              it. The sheet hugs its content and grows with the error row, so a
+              fixed number drifts. */}
+          <Camera center={center} zoom={16} padding={{ bottom: sheetHeight }} />
           <Marker lngLat={center} anchor="center">
             <View style={[styles.pinHalo, !empty && styles.pinHaloActive]}>
               <View style={[styles.pinDot, !empty && styles.pinDotActive]} />
@@ -110,7 +119,14 @@ export default function ComposeScreen() {
         double-compensate.
       */}
       <KeyboardAvoidingView behavior="padding" style={styles.sheetWrap}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 14 }]}>
+        <View
+          style={[styles.sheet, { paddingBottom: insets.bottom + 14 }]}
+          onLayout={(e) => {
+            // Safe against a loop: the camera reads this, the sheet does not.
+            const { height } = e.nativeEvent.layout;
+            setSheetHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+          }}
+        >
           <View style={styles.body}>
             <Text style={styles.kicker}>Your message</Text>
 
