@@ -9,6 +9,7 @@ pub enum AppError {
     DatabaseError,
     NotFound(String),
     Gone(String),
+    TooManyRequests(String),
 }
 
 impl IntoResponse for AppError {
@@ -21,6 +22,9 @@ impl IntoResponse for AppError {
             }
             AppError::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
             AppError::Gone(message) => (StatusCode::GONE, message).into_response(),
+            AppError::TooManyRequests(message) => {
+                (StatusCode::TOO_MANY_REQUESTS, message).into_response()
+            }
         }
     }
 }

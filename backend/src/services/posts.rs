@@ -1,5 +1,8 @@
 use sqlx::PgPool;
 
+/// See the note in create_post for why this is short.
+const POST_COOLDOWN_SECONDS: f64 = 60.0;
+
 use crate::{
     domain::post::{
         CreatePost, NearbyPostsRequest, Post, ReactedPost, ReactedPostsRequest, ReactToPost,
@@ -16,6 +19,20 @@ pub async fn create_post(
 
     input.validate()
         .map_err(AppError::BadRequest)?;
+
+    // A short cooldown so a double-tap or a stuck retry can't flood the map.
+    // Deliberately short: someone at a street festival may legitimately report
+    // three different things in a couple of minutes, and the product wants
+    // those. Keyed on user_id, which is client-supplied and unverified, so this
+    // is a guardrail rather than a real control until authentication exists.
+    if let Some(seconds) = posts_repository::seconds_since_last_post(pool, input.user_id).await? {
+        if seconds < POST_COOLDOWN_SECONDS {
+            let wait = (POST_COOLDOWN_SECONDS - seconds).ceil() as i64;
+            return Err(AppError::TooManyRequests(format!(
+                "Wait {wait}s before posting again"
+            )));
+        }
+    }
 
     let exists = posts_repository::post_exists(pool, input.user_id, &input.message).await?;
 

@@ -129,6 +129,31 @@ pub async fn update_post(pool: &PgPool, id: i64, input: CreatePost) -> Result<bo
     Ok(result.rows_affected() > 0)
 }
 
+/// Seconds since this author's most recent post, or None if they've never
+/// posted. Counts expired posts too - the point is pacing the author, not
+/// what is currently visible.
+pub async fn seconds_since_last_post(
+    pool: &PgPool,
+    user_id: i64,
+) -> Result<Option<f64>, AppError> {
+    let seconds: Option<f64> = sqlx::query_scalar(
+        r#"
+        SELECT EXTRACT(EPOCH FROM (NOW() - MAX(created_at)))::float8
+        FROM posts
+        WHERE user_id = $1
+        "#,
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        error!(error = ?e, user_id, "failed to check last post time");
+        AppError::DatabaseError
+    })?;
+
+    Ok(seconds)
+}
+
 /// Whether this author already has this message live.
 ///
 /// Scoped to active posts and to the same author on purpose. Matching every
