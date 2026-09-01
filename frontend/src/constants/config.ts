@@ -32,8 +32,8 @@ export const RADIUS_OPTIONS = [
   { metres: Math.round(0.25 * METRES_PER_MILE), label: '0.25mi', zoom: 15 },
   { metres: Math.round(1 * METRES_PER_MILE), label: '1mi', zoom: 13 },
   { metres: Math.round(5 * METRES_PER_MILE), label: '5mi', zoom: 11 },
-  // The widest the backend allows - its cap is exactly this 50 miles.
-  { metres: Math.round(50 * METRES_PER_MILE), label: '50mi', zoom: 8 },
+  // The widest the backend allows - its cap is exactly this 10 miles.
+  { metres: Math.round(10 * METRES_PER_MILE), label: '10mi', zoom: 10 },
 ];
 
 export type RadiusOption = (typeof RADIUS_OPTIONS)[number];

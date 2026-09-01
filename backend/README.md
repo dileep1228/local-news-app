@@ -30,7 +30,7 @@ two different people reporting the same thing is allowed.
 
 ### `GET /posts/nearby`
 Query: `user_id`, `latitude`, `longitude`, `radius` (meters, required, max
-80,500 — 50 miles), `sort` (optional: `distance` default, or `score` for the
+16,100 — 10 miles), `sort` (optional: `distance` default, or `score` for the
 same smoothed engagement ranking trending uses), `limit` (optional, default
 50, max 100).
 A "swipe deck" — once a post is reacted to, it stops appearing here for that user.

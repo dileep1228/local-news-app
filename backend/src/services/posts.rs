@@ -41,10 +41,10 @@ pub async fn get_near_by_posts(
         .validate()
         .map_err(AppError::BadRequest)?;
 
-     // 50 miles is 80_467m; rounded up so the client's widest option fits.
-     if request.radius > 80_500.0 {
+     // 10 miles is 16_093m; rounded up so the client's widest option fits.
+     if request.radius > 16_100.0 {
         return Err(AppError::BadRequest(
-            "Search radius cannot exceed 50 miles".to_string(),
+            "Search radius cannot exceed 10 miles".to_string(),
         ));
     }
 
