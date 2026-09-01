@@ -24,7 +24,9 @@ are binary: **signal** ("show this to more people nearby") or **noise**
 
 ### `POST /posts`
 Body: `{ "user_id": i64, "message": string, "location": { "latitude": f64, "longitude": f64 } }`
-Message must be non-empty and ≤280 chars; duplicate messages are rejected (`400`).
+Message must be non-empty and ≤280 chars. Rejected with `400` if the same
+author already has that exact message live — expired posts don't count, and
+two different people reporting the same thing is allowed.
 
 ### `GET /posts/nearby`
 Query: `user_id`, `latitude`, `longitude`, `radius` (meters, required, max
@@ -66,12 +68,6 @@ deliberate "not yet" calls made while keeping scope small.
 
 - **No pagination** — `GET /posts` and `GET /posts/nearby` return every
   matching row, unbounded. `trending` has `limit`, these don't.
-- **The duplicate-message check ignores expiry** — `post_exists` matches
-  against every row ever written, including long-expired ones, so a
-  message can only ever be posted once in the lifetime of the database.
-  Nobody could post "Free coffee at the corner shop" twice, years apart.
-  It should almost certainly only consider active posts, and probably
-  only the same author's.
 - **No rate limiting / abuse protection** on any endpoint.
 - **No authentication** — `user_id` is a client-supplied value on every
   endpoint, not verified. Everything downstream (nearby's exclusion filter,

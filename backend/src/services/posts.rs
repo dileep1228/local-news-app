@@ -17,11 +17,11 @@ pub async fn create_post(
     input.validate()
         .map_err(AppError::BadRequest)?;
 
-    let exists = posts_repository::post_exists(pool, &input.message).await?;
+    let exists = posts_repository::post_exists(pool, input.user_id, &input.message).await?;
 
     if exists {
         return Err(AppError::BadRequest(
-            "Duplicate post".to_string(),
+            "You have already posted this".to_string(),
         ));
     }
 

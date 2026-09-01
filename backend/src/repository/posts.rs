@@ -129,17 +129,32 @@ pub async fn update_post(pool: &PgPool, id: i64, input: CreatePost) -> Result<bo
     Ok(result.rows_affected() > 0)
 }
 
-pub async fn post_exists(pool: &PgPool, message: &str) -> Result<bool, AppError> {
+/// Whether this author already has this message live.
+///
+/// Scoped to active posts and to the same author on purpose. Matching every
+/// row ever written meant a message could only be posted once for the lifetime
+/// of the database - nobody could report "Free coffee at the corner shop" twice
+/// months apart. Scoping to one author still stops someone flooding the map,
+/// while letting two neighbours independently report the same street closure,
+/// which is legitimate signal rather than spam.
+pub async fn post_exists(
+    pool: &PgPool,
+    user_id: i64,
+    message: &str,
+) -> Result<bool, AppError> {
     let exists: bool = sqlx::query_scalar(
         r#"
         SELECT EXISTS (
             SELECT 1
             FROM posts
             WHERE message = $1
+              AND user_id = $2
+              AND expires_at > NOW()
         )
         "#,
     )
     .bind(message)
+    .bind(user_id)
     .fetch_one(pool)
     .await
     .map_err(|e| {
