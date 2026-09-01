@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 import { PostRow } from '@/components/post-row';
 import { HeaderControls } from '@/components/header-controls';
@@ -17,6 +17,7 @@ type Props = {
   onSelect: (post: Post) => void;
   onReactTo: (post: Post, reaction: Reaction) => void;
   onChangeMode: (mode: ViewMode) => void;
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -33,12 +34,13 @@ export function PostList({
   onSelect,
   onReactTo,
   onChangeMode,
+  onLayout,
 }: Props) {
   const theme = useTheme();
   const styles = makeStyles(theme);
 
   return (
-    <View style={styles.panel}>
+    <View style={styles.panel} onLayout={onLayout}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Nearby, ranked</Text>

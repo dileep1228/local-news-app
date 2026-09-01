@@ -43,6 +43,30 @@ export async function fetchNearbyPosts(
   return response.json();
 }
 
+export async function createPost(
+  [longitude, latitude]: LngLat,
+  message: string,
+): Promise<Post> {
+  const response = await request('/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: USER_ID,
+      message,
+      location: { latitude, longitude },
+    }),
+  });
+
+  if (!response.ok) {
+    // The body carries a readable reason for 400 (validation, duplicate) and
+    // 429 (cooldown), so surface it rather than a bare status code.
+    const reason = await response.text().catch(() => '');
+    throw new ApiError(reason || `Server returned ${response.status}`, response.status);
+  }
+
+  return response.json();
+}
+
 export async function reactToPost(postId: number, reaction: Reaction): Promise<void> {
   const response = await request(`/posts/${postId}/reaction`, {
     method: 'POST',

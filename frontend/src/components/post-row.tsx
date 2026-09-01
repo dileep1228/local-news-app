@@ -63,7 +63,13 @@ export function PostRow({ post, active, center, onSelect, onReact }: Props) {
             </Text>
           </View>
 
-          <Text style={[styles.message, active && styles.messageActive]}>{post.message}</Text>
+          {/* The row is a scannable summary; the full text is in the card. */}
+          <Text
+            style={[styles.message, active && styles.messageActive]}
+            numberOfLines={active ? 3 : 2}
+          >
+            {post.message}
+          </Text>
         </View>
       </Pressable>
     </Swipeable>

@@ -6,6 +6,15 @@ import type { LngLat } from '@/types/post';
  */
 export const API_URL = 'http://10.0.0.112:3000';
 
+/** Matches the backend's own validation in CreatePost::validate(). */
+export const MAX_MESSAGE_LENGTH = 280;
+
+/**
+ * The counter is quiet until this many characters remain, then turns accent,
+ * then blocks - per the design spec.
+ */
+export const COUNTER_NEAR_AT = 40;
+
 /** Hardcoded until there's real authentication. */
 export const USER_ID = 1;
 

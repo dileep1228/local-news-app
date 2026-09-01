@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
@@ -28,7 +28,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <AppThemeProvider>
-            <Slot />
+            {/*
+              Stack rather than Slot: Slot replaces the current page instead of
+              pushing, so compose would have nothing to go back to. Both screens
+              draw their own top bar, hence no navigator header.
+            */}
+            <Stack screenOptions={{ headerShown: false }} />
           </AppThemeProvider>
         </ThemeProvider>
       </SafeAreaProvider>

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 import { useTheme } from '@/theme/context';
 import type { Theme } from '@/theme/themes';
@@ -20,6 +20,8 @@ type Props = {
   onReact: (reaction: Reaction) => void;
   onSkip: () => void;
   onChangeMode: (mode: ViewMode) => void;
+  /** The sheet hugs its content, so the map has to measure it, not assume it. */
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -38,6 +40,7 @@ export function PostSheet({
   onReact,
   onSkip,
   onChangeMode,
+  onLayout,
 }: Props) {
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -45,7 +48,7 @@ export function PostSheet({
   const upNext = posts.filter((p) => p.id !== post?.id).slice(0, 3);
 
   return (
-    <View style={[styles.sheet, { paddingBottom: bottomInset + 8 }]}>
+    <View style={[styles.sheet, { paddingBottom: bottomInset + 8 }]} onLayout={onLayout}>
       <View style={styles.grabRow}>
         <View style={styles.grabber} />
         <Text style={styles.queueLabel}>
@@ -68,7 +71,15 @@ export function PostSheet({
               <Text style={styles.metaAccent}>{formatRemaining(post.expires_at)} left</Text>
             </View>
 
-            <Text style={styles.message}>{post.message}</Text>
+            {/*
+              A 280-character message runs to about eleven lines here, which
+              would push the buttons off the sheet. Scroll it rather than
+              truncating - you should not be asked to judge a post you can only
+              partly read.
+            */}
+            <ScrollView style={styles.messageScroll} nestedScrollEnabled>
+              <Text style={styles.message}>{post.message}</Text>
+            </ScrollView>
 
             <View style={styles.decayTrack}>
               <View
@@ -198,6 +209,9 @@ const makeStyles = (theme: Theme) =>
     fontSize: 11.5,
     fontWeight: '600',
     letterSpacing: 0.3,
+  },
+  messageScroll: {
+    maxHeight: 130,
   },
   message: {
     color: theme.ink,

@@ -35,7 +35,17 @@
           "imageWidth": 76
         }
       ],
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Signal / Noise uses the microphone so you can speak a post instead of typing it.",
+          "speechRecognitionPermission": "Signal / Noise turns your speech into the text of your post.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

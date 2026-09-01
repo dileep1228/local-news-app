@@ -10,6 +10,7 @@ import type { LngLat } from '@/types/post';
  */
 export function useCurrentLocation() {
   const [center, setCenter] = useState<LngLat | null>(null);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,10 +26,11 @@ export function useCurrentLocation() {
 
       const { coords } = await Location.getCurrentPositionAsync({});
       setCenter([coords.longitude, coords.latitude]);
+      setAccuracy(coords.accuracy);
     }
 
     load();
   }, []);
 
-  return { center, error };
+  return { center, accuracy, error };
 }

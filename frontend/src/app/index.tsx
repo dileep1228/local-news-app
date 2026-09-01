@@ -1,8 +1,10 @@
 import { Camera, Map } from '@maplibre/maplibre-react-native';
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { COMPOSE_BUTTON_HEIGHT, ComposeButton } from '@/components/compose-button';
 import { PostList } from '@/components/post-list';
 import { PostPin } from '@/components/post-pin';
 import { PostSheet } from '@/components/post-sheet';
@@ -17,11 +19,14 @@ import { useNearbyPosts } from '@/hooks/use-nearby-posts';
 import type { Post, Reaction } from '@/types/post';
 
 /**
- * Roughly how much of the screen the sheet covers in map mode. The camera is
- * padded by this so a selected pin sits in the visible strip above it rather
- * than behind it.
+ * Only the starting guess. The sheet hugs its content, so it is far shorter at
+ * peek than with a post open, and anything positioned off a fixed number
+ * floats away from it. Replaced by the real height on first layout.
  */
 const SHEET_HEIGHT = 330;
+
+/** Gap between the panel and the compose button, and between button and pill. */
+const GUTTER = 12;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -29,12 +34,25 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<ViewMode>('map');
   const [radiusIndex, setRadiusIndex] = useState(DEFAULT_RADIUS_INDEX);
   const [selected, setSelected] = useState<Post | null>(null);
+  const [panelHeight, setPanelHeight] = useState(SHEET_HEIGHT);
 
   const radius = RADIUS_OPTIONS[radiusIndex];
   const canWiden = radiusIndex < RADIUS_OPTIONS.length - 1;
 
   const { center, error: locationError } = useCurrentLocation();
-  const { posts, error: postsError, reacting, react } = useNearbyPosts(center, radius.metres);
+  const { posts, error: postsError, reacting, react, refresh } = useNearbyPosts(
+    center,
+    radius.metres,
+  );
+
+  // Coming back from compose, the post just written should be on the map. On
+  // the very first focus `center` is still null, so this is a no-op and the
+  // hook's own effect does the initial load.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   if (!center) {
     return (
@@ -87,6 +105,17 @@ export default function HomeScreen() {
 
   const showWidenPrompt = posts.length === 0 && canWiden;
 
+  /**
+   * Safe against a layout loop: nothing the panels measure depends on this, so
+   * setting it cannot change what they report back.
+   */
+  function measurePanel(height: number) {
+    setPanelHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+  }
+
+  const composeBottom = panelHeight + GUTTER;
+  const statusBottom = composeBottom + COMPOSE_BUTTON_HEIGHT + GUTTER;
+
   return (
     <View style={styles.container}>
       <View style={mode === 'list' ? styles.mapSplit : styles.mapFull}>
@@ -101,7 +130,7 @@ export default function HomeScreen() {
           <Camera
             center={cameraCenter}
             zoom={mode === 'list' ? radius.zoom - 0.6 : radius.zoom}
-            padding={mode === 'map' ? { bottom: SHEET_HEIGHT } : undefined}
+            padding={mode === 'map' ? { bottom: panelHeight } : undefined}
           />
           <SearchArea center={center} radiusMetres={radius.metres} theme={theme} />
 
@@ -121,11 +150,11 @@ export default function HomeScreen() {
       {mode === 'map' ? (
         <>
           {error ? (
-            <StatusBarMessage text={error} bottomOffset={SHEET_HEIGHT + 16} />
+            <StatusBarMessage text={error} bottomOffset={statusBottom} />
           ) : showWidenPrompt ? (
             <StatusBarMessage
               text={`Nothing left within ${radius.label}`}
-              bottomOffset={SHEET_HEIGHT + 16}
+              bottomOffset={statusBottom}
               action={{
                 label: `Widen to ${RADIUS_OPTIONS[radiusIndex + 1].label}`,
                 onPress: () => changeRadius(radiusIndex + 1),
@@ -144,6 +173,7 @@ export default function HomeScreen() {
             onReact={handleReact}
             onSkip={handleSkip}
             onChangeMode={setMode}
+            onLayout={(e) => measurePanel(e.nativeEvent.layout.height)}
           />
         </>
       ) : (
@@ -157,6 +187,7 @@ export default function HomeScreen() {
           onSelect={setSelected}
           onReactTo={handleReactTo}
           onChangeMode={setMode}
+          onLayout={(e) => measurePanel(e.nativeEvent.layout.height)}
         />
       )}
 
@@ -165,6 +196,8 @@ export default function HomeScreen() {
         topOffset={insets.top + 12}
         onSelect={changeRadius}
       />
+
+      <ComposeButton bottom={composeBottom} />
 
     </View>
   );
