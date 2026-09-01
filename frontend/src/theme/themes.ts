@@ -27,10 +27,12 @@ export const PIN_UNSELECTED_DIM = 0.55;
 export const SHEET_HEIGHT_FRACTION = 0.42;
 export const TRANSITION_MS = 300;
 
-/** Pins fade as a post ages, floored so nothing disappears entirely. */
-export function ageOpacity(ageMinutes: number): number {
-  return Math.max(0.4, 1 - ageMinutes / 180);
-}
+/**
+ * How far a pin's colour is allowed to travel toward the map's ground by the
+ * time a post expires. Short of 1 so the oldest pin is still legible rather
+ * than invisible.
+ */
+export const PIN_MAX_AGE_WASH = 0.65;
 
 export type Theme = {
   id: string;
