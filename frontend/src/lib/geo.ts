@@ -20,9 +20,20 @@ export function distanceMetres([lon1, lat1]: LngLat, [lon2, lat2]: LngLat): numb
   return 2 * earthRadius * Math.asin(Math.sqrt(a));
 }
 
-/** "90m" / "1.2km" - short enough for a metadata row. */
+const FEET_PER_METRE = 3.28084;
+const METRES_PER_MILE = 1609.34;
+
+/**
+ * "300ft" / "1.2mi" - short enough for a metadata row. Stays in feet up to
+ * 1000ft, since the tightest radii are hyperlocal and "0.1mi" says less than
+ * "480ft" does.
+ */
 export function formatDistance(metres: number): string {
-  return metres < 1000 ? `${Math.round(metres)}m` : `${(metres / 1000).toFixed(1)}km`;
+  const feet = metres * FEET_PER_METRE;
+
+  return feet < 1000
+    ? `${Math.round(feet)}ft`
+    : `${(metres / METRES_PER_MILE).toFixed(1)}mi`;
 }
 
 /**

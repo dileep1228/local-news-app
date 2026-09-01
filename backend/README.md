@@ -27,9 +27,10 @@ Body: `{ "user_id": i64, "message": string, "location": { "latitude": f64, "long
 Message must be non-empty and ≤280 chars; duplicate messages are rejected (`400`).
 
 ### `GET /posts/nearby`
-Query: `user_id`, `latitude`, `longitude`, `radius` (meters, required, max 50km),
-`sort` (optional: `distance` default, or `score` for the same smoothed
-engagement ranking trending uses), `limit` (optional, default 50, max 100).
+Query: `user_id`, `latitude`, `longitude`, `radius` (meters, required, max
+80,500 — 50 miles), `sort` (optional: `distance` default, or `score` for the
+same smoothed engagement ranking trending uses), `limit` (optional, default
+50, max 100).
 A "swipe deck" — once a post is reacted to, it stops appearing here for that user.
 
 ### `GET /posts/trending`
