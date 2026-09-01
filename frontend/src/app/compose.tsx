@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { COUNTER_NEAR_AT, MAX_MESSAGE_LENGTH } from '@/constants/config';
 import { useCurrentLocation } from '@/hooks/use-current-location';
-import { useDictation } from '@/hooks/use-dictation';
 import { ApiError, createPost } from '@/lib/api';
 import { formatDistance } from '@/lib/geo';
 import { useTheme } from '@/theme/context';
@@ -46,8 +45,6 @@ export default function ComposeScreen() {
     setServerError(null);
   }
 
-  const dictation = useDictation(message, edit);
-
   const trimmed = message.trim();
   const remaining = MAX_MESSAGE_LENGTH - message.length;
   const over = remaining < 0;
@@ -57,7 +54,7 @@ export default function ComposeScreen() {
 
   const inlineError = over
     ? `${Math.abs(remaining)} character${Math.abs(remaining) === 1 ? '' : 's'} over. Trim it to ${MAX_MESSAGE_LENGTH}.`
-    : (serverError ?? dictation.error);
+    : serverError;
 
   const counterColor = over ? theme.accent : near ? theme.accentDeep : theme.muted;
 
@@ -115,31 +112,7 @@ export default function ComposeScreen() {
       <KeyboardAvoidingView behavior="padding" style={styles.sheetWrap}>
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 14 }]}>
           <View style={styles.body}>
-            <View style={styles.labelRow}>
-              <Text style={styles.kicker}>Your message</Text>
-
-              {dictation.available ? (
-                <Pressable
-                  style={[styles.mic, dictation.listening && styles.micLive]}
-                  onPress={dictation.toggle}
-                  accessibilityRole="button"
-                  accessibilityLabel={dictation.listening ? 'Stop dictating' : 'Dictate'}
-                  hitSlop={8}
-                >
-                  {dictation.listening ? (
-                    <View style={styles.stopMark} />
-                  ) : (
-                    <View style={styles.micMark}>
-                      <View style={styles.micCapsule} />
-                      <View style={styles.micCradle} />
-                    </View>
-                  )}
-                  <Text style={[styles.micLabel, dictation.listening && styles.micLabelLive]}>
-                    {dictation.listening ? 'Listening' : 'Dictate'}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
+            <Text style={styles.kicker}>Your message</Text>
 
             <TextInput
               style={styles.input}
@@ -306,59 +279,6 @@ const makeStyles = (theme: Theme) =>
     body: {
       paddingHorizontal: 18,
       paddingTop: 14,
-    },
-    labelRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    mic: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-      backgroundColor: theme.block,
-      borderRadius: theme.radius.button ? 14 : 0,
-    },
-    micLive: {
-      backgroundColor: theme.accent,
-    },
-    /* Drawn rather than typed: there is no icon set in this project, and a
-       glyph from five different typefaces would not be the same mark twice. */
-    micMark: {
-      alignItems: 'center',
-      gap: 1.5,
-    },
-    micCapsule: {
-      width: 5,
-      height: 8,
-      borderRadius: 2.5,
-      backgroundColor: theme.muted,
-    },
-    micCradle: {
-      width: 9,
-      height: 4,
-      borderWidth: 1.5,
-      borderTopWidth: 0,
-      borderColor: theme.muted,
-      borderBottomLeftRadius: 5,
-      borderBottomRightRadius: 5,
-    },
-    stopMark: {
-      width: 9,
-      height: 9,
-      backgroundColor: theme.onAccent,
-    },
-    micLabel: {
-      color: theme.muted,
-      fontFamily: theme.fonts.numeral,
-      fontSize: 9.8,
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
-    },
-    micLabelLive: {
-      color: theme.onAccent,
     },
     kicker: {
       color: theme.muted,
